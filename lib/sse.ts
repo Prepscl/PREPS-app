@@ -1,18 +1,10 @@
-import { EventEmitter } from 'events';
+// Stubs: emits son no-op porque ya no usamos SSE (el cliente hace polling).
+// Se mantienen las funciones exportadas para no romper imports existentes.
 
-const globalSSE = global as typeof globalThis & { sseEmitter: EventEmitter };
-
-if (!globalSSE.sseEmitter) {
-  globalSSE.sseEmitter = new EventEmitter();
-  globalSSE.sseEmitter.setMaxListeners(200);
+export function emitNuevoPedido(_pedido: unknown): void {
+  // no-op
 }
 
-export const sseEmitter = globalSSE.sseEmitter;
-
-export function emitNuevoPedido(pedido: unknown) {
-  sseEmitter.emit('event', { tipo: 'NUEVO_PEDIDO', data: pedido });
-}
-
-export function emitPedidoActualizado(pedido: unknown) {
-  sseEmitter.emit('event', { tipo: 'PEDIDO_ACTUALIZADO', data: pedido });
+export function emitPedidoActualizado(_pedido: unknown): void {
+  // no-op
 }

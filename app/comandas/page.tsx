@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Navbar from '@/components/Navbar';
-import { useSSE, playNotificationSound } from '@/components/NotificationProvider';
+import { useAutoRefresh, playNotificationSound } from '@/components/NotificationProvider';
 import { formatCLP, calcularCostoPlato } from '@/lib/calculations';
 import {
   CheckCircle2, XCircle, Clock, User, Phone, MessageSquare,
@@ -494,10 +494,17 @@ export default function ComandasPage() {
 
   useEffect(() => { setLoading(true); fetch_(); }, [fetch_]);
 
-  useSSE(e => {
-    if (e.tipo === 'NUEVO_PEDIDO')        { playNotificationSound(); fetch_(); }
-    else if (e.tipo === 'PEDIDO_ACTUALIZADO') { fetch_(); }
-  });
+  // Detectar pedidos nuevos (suena si aumenta la cantidad de pendientes)
+  const prevPendientesRef = useRef<number | null>(null);
+  useEffect(() => {
+    const pendientes = pedidos.filter(p => p.estado === 'PENDIENTE_PAGO').length;
+    if (prevPendientesRef.current != null && pendientes > prevPendientesRef.current) {
+      playNotificationSound();
+    }
+    prevPendientesRef.current = pendientes;
+  }, [pedidos]);
+
+  useAutoRefresh(fetch_, 20000);
 
   async function handleAccept(id: number, conIva: boolean) {
     setActionL(true);

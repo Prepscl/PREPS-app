@@ -1,37 +1,65 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
-export function useSSE(onEvent: (event: { tipo: string; data: unknown }) => void) {
-  const onEventRef = useRef(onEvent);
-  onEventRef.current = onEvent;
+/**
+ * Visibility-aware polling. Refetches:
+ *  - on mount (if visible)
+ *  - every intervalMs (only while visible)
+ *  - on tab focus / visibility change to visible
+ *
+ * Reemplaza SSE porque SSE mantiene una conexión viva que en Vercel
+ * cuenta como tiempo de CPU continuo y puede agotar la cuota.
+ */
+export function useAutoRefresh(refetch: () => void, intervalMs: number = 20000) {
+  const refetchRef = useRef(refetch);
+  refetchRef.current = refetch;
 
   useEffect(() => {
-    let es: EventSource;
-    let retryTimer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setInterval> | null = null;
 
-    function connect() {
-      es = new EventSource('/api/stream');
-
-      es.onmessage = (e) => {
-        try {
-          const payload = JSON.parse(e.data);
-          onEventRef.current(payload);
-        } catch {}
-      };
-
-      es.onerror = () => {
-        es.close();
-        retryTimer = setTimeout(connect, 3000);
-      };
-    }
-
-    connect();
-    return () => {
-      es?.close();
-      clearTimeout(retryTimer);
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => refetchRef.current(), intervalMs);
     };
-  }, []);
+    const stop = () => {
+      if (timer) { clearInterval(timer); timer = null; }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refetchRef.current();
+        start();
+      } else {
+        stop();
+      }
+    };
+    const onFocus = () => refetchRef.current();
+
+    if (document.visibilityState === 'visible') start();
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [intervalMs]);
+}
+
+/**
+ * Compat: el API viejo `useSSE(cb)` se mantiene.
+ * Ahora cada poll dispara un "evento" sintético que hace refetch
+ * equivalente a NUEVO_PEDIDO + PEDIDO_ACTUALIZADO.
+ */
+export function useSSE(onEvent: (event: { tipo: string; data: unknown }) => void) {
+  const cbRef = useRef(onEvent);
+  cbRef.current = onEvent;
+  useAutoRefresh(() => {
+    cbRef.current({ tipo: 'POLL', data: null });
+    cbRef.current({ tipo: 'NUEVO_PEDIDO', data: null });
+    cbRef.current({ tipo: 'PEDIDO_ACTUALIZADO', data: null });
+  }, 20000);
 }
 
 export function playNotificationSound() {

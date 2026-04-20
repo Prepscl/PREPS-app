@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
-import { useSSE } from '@/components/NotificationProvider';
+import { useAutoRefresh } from '@/components/NotificationProvider';
 import { formatCLP } from '@/lib/calculations';
 import { RefreshCw, PlusCircle, Trash2, Pencil, ChevronDown, ChevronRight, Check, X } from 'lucide-react';
 import clsx from 'clsx';
@@ -557,7 +557,7 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-  useSSE(e => { if (e.tipo === 'PEDIDO_ACTUALIZADO' || e.tipo === 'NUEVO_PEDIDO') fetchData(); });
+  useAutoRefresh(fetchData, 45000);
 
   const inv = data?.inversion;
   const invPct = inv && inv.totalInvertido > 0

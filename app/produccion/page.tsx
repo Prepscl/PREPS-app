@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
-import { useSSE } from '@/components/NotificationProvider';
+import { useAutoRefresh } from '@/components/NotificationProvider';
 import { RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -29,7 +29,7 @@ export default function ProduccionPage() {
   }, []);
 
   useEffect(() => { fetch_(); }, [fetch_]);
-  useSSE(e => { if (e.tipo === 'PEDIDO_ACTUALIZADO') fetch_(); });
+  useAutoRefresh(fetch_, 60000);
 
   const totalKg = data
     ? data.insumos.pollo.crudo_kg + data.insumos.arroz.crudo_kg + data.insumos.brocoli.crudo_kg
