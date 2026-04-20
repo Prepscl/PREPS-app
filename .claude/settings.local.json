@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000/api/dashboard)",
+      "Bash(curl -s -X POST http://localhost:3000/api/pedidos -H 'Content-Type: application/json' -d '{\"tipo\":\"low_carb\",\"cliente\":\"Juan\",\"items\":[{\"tipo\":\"low_carb\",\"cantidad\":2,\"g_pollo\":150,\"g_arroz\":80,\"g_brocoli\":100,\"precio\":4990}]}')",
+      "Bash(curl -s -X PATCH http://localhost:3000/api/pedidos/1 -H 'Content-Type: application/json' -d '{\"accion\":\"ACEPTAR\"}')",
+      "Bash(curl -s http://localhost:3000/api/produccion)",
+      "Bash(curl -s -X POST http://localhost:3000/api/pedidos/nuevo -H 'Content-Type: application/json' -H 'x-webhook-secret: preps_secret_2024' -d '{\"tipo\":\"high_carb\",\"cliente\":\"María\",\"telefono\":\"+56912345678\",\"origen\":\"WEB\",\"items\":[{\"tipo\":\"high_carb\",\"cantidad\":1,\"g_pollo\":200,\"g_arroz\":200,\"g_brocoli\":80,\"precio\":5690}]}')",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(rm -rf .next)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(curl -s -X POST http://localhost:3000/api/inversiones -H 'Content-Type: application/json' -d '{\"descripcion\":\"Ollas y utensilios\",\"monto\":45000,\"categoria\":\"EQUIPOS\"}')",
+      "Bash(curl -s -X PUT http://localhost:3000/api/taperes -H 'Content-Type: application/json' -d '{\"stock\":150}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/ventas -H 'Content-Type: application/json' -d '{\"monto\":15000,\"costo\":3000,\"con_iva\":false,\"descripcion\":\"Ventas universidad semana pasada\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/ventas -H 'Content-Type: application/json' -d '{\"monto\":9980,\"costo\":2000,\"con_iva\":true,\"descripcion\":\"Pedido boleta\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:3000/api/pedidos?estado=PENDIENTE_PAGO)",
+      "Bash(curl -s http://localhost:3000/api/pedidos)",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(f'ID:{p[\\\\\"id\\\\\"]} Estado:{p[\\\\\"estado\\\\\"]}'\\) for p in data]\")",
+      "Bash(curl -s \"http://localhost:3000/api/pedidos?estado=PENDIENTE_PAGO\")",
+      "Bash(curl -s -X PATCH http://localhost:3000/api/pedidos/3 -H 'Content-Type: application/json' -d '{\"accion\":\"ACEPTAR\",\"con_iva\":false}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Estado:', d['pedido']['estado']\\)\")",
+      "Bash(curl -s http://localhost:3000/api/taperes)",
+      "Bash(curl -s -X PATCH http://localhost:3000/api/pedidos/3 -H \"Content-Type: application/json\" -d '{\"accion\":\"ACEPTAR\",\"con_iva\":false}')",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "WebFetch(domain:www.preps.cl)",
+      "Bash(dir /b)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/api/ventas)"
+    ]
+  }
+}

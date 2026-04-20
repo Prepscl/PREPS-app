@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═════════════════════════════════════════════════════════════════
+   PREPS — Minimalist Design System
+   Palette: solo negro, blanco, grises y amarillo #FFD600
+   ═════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg:        #000000;
+  --s1:        #0a0a0a;
+  --s2:        #111111;
+  --s3:        #1a1a1a;
+  --s4:        #222222;
+  --s5:        #2e2e2e;
+  --line:      #1a1a1a;
+  --white:     #ffffff;
+  --off:       #e8e8e8;
+  --muted:     #707070;
+  --dim:       #404040;
+  --faint:     #2a2a2a;
+  --brand:     #FFD600;
+  --brand-dim: rgba(255,214,0,0.08);
+}
+
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--white);
+  overscroll-behavior: none;
+  font-feature-settings: "ss01", "cv01";
+}
+
+/* Scrollbar — invisible en mobile */
+::-webkit-scrollbar { width: 2px; height: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; }
+
+/* ── Typography helpers ───────────────────────────────────────── */
+.display {
+  font-family: var(--font-bebas), Impact, 'Arial Black', sans-serif;
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+}
+
+.label {
+  font-family: var(--font-barlow), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.eyebrow {
+  font-family: var(--font-barlow), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.625rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* ── Components ───────────────────────────────────────────────── */
+@layer components {
+
+  /* PREPS logo block — idéntico al sitio web */
+  .preps-logo {
+    @apply inline-block bg-white text-black font-bebas tracking-wider;
+    padding: 4px 10px 2px;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  /* Cards — flat, sin sombras, solo línea sutil */
+  .card {
+    background: transparent;
+    border: 1px solid var(--line);
+  }
+
+  .card-solid {
+    background: var(--s1);
+    border: 1px solid var(--line);
+  }
+
+  /* Stat */
+  .stat {
+    @apply card p-4 flex flex-col gap-1;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center font-barlow font-700
+           transition-all duration-100 active:scale-[0.98] select-none;
+    letter-spacing: 0.08em;
+  }
+
+  .btn-brand {
+    @apply btn bg-brand text-black px-5 py-3 text-sm uppercase;
+    font-weight: 800;
+  }
+  .btn-brand:hover { background: #FFE033; }
+
+  .btn-white {
+    @apply btn bg-white text-black px-5 py-3 text-sm uppercase;
+    font-weight: 800;
+  }
+
+  .btn-dark {
+    @apply btn text-white px-5 py-3 text-sm uppercase;
+    background: transparent;
+    border: 1px solid var(--s5);
+  }
+  .btn-dark:hover { background: var(--s2); border-color: var(--muted); }
+
+  .btn-ghost {
+    @apply btn text-white px-3 py-2 text-xs uppercase;
+    background: transparent;
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { border-color: var(--muted); color: var(--white); }
+
+  /* Input */
+  .input {
+    @apply w-full text-white text-sm px-3 py-2.5 placeholder-[#333] outline-none transition-colors;
+    background: transparent;
+    border: 1px solid var(--faint);
+  }
+  .input:focus { border-color: var(--white); }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 text-[10px] font-barlow font-700
+           uppercase tracking-widest;
+  }
+
+  .badge-brand {
+    @apply badge bg-brand text-black;
+  }
+
+  .badge-outline {
+    @apply badge;
+    border: 1px solid var(--s5);
+    color: var(--muted);
+  }
+
+  /* Divider */
+  .divider {
+    border-top: 1px solid var(--line);
+  }
+
+  /* Section heading */
+  .section-title {
+    @apply text-[10px] uppercase font-barlow font-700;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+  }
+}
+
+/* Font weights utility */
+.font-700 { font-weight: 700; }
+.font-800 { font-weight: 800; }
+.font-900 { font-weight: 900; }
+
+/* Animaciones sutiles */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes pulse-fast {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.animate-fade-in   { animation: fade-in 0.2s ease-out; }
+.animate-slide-up  { animation: slide-up 0.22s ease-out; }
+.animate-pulse-fast { animation: pulse-fast 1.4s ease-in-out infinite; }
