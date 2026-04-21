@@ -37,7 +37,10 @@
       "Bash(npx next *)",
       "Bash(git add *)",
       "Bash(git commit -m 'feat: historial de clientes con autocomplete en pedido manual *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const p='app/dashboard/page.tsx';let s=fs.readFileSync\\(p,'utf8'\\);const start=s.indexOf\\('// ── Venta Modal'\\);const end=s.indexOf\\('// ── Reset Modal'\\);s=s.slice\\(0,start\\)+s.slice\\(end\\);fs.writeFileSync\\(p,s\\);console.log\\('OK', start, end\\);\")",
+      "Bash(node -e \"const fs=require\\('fs'\\);const p='app/comandas/page.tsx';let s=fs.readFileSync\\(p,'utf8'\\);const start=s.indexOf\\('// ── Nuevo Pedido Modal'\\);const end=s.indexOf\\('// ── Main ──'\\);s=s.slice\\(0,start\\)+s.slice\\(end\\);fs.writeFileSync\\(p,s\\);console.log\\('OK',start,end\\);\")",
+      "Bash(git commit -m 'refactor: VentaModal compartido entre dashboard y comandas + cliente fields *)"
     ]
   }
 }

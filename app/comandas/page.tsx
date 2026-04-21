@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useAutoRefresh, playNotificationSound } from '@/components/NotificationProvider';
+import VentaModal from '@/components/VentaModal';
 import { formatCLP, calcularCostoPlato } from '@/lib/calculations';
 import {
   CheckCircle2, XCircle, Clock, User, Phone, MessageSquare,
@@ -351,184 +352,6 @@ function OrderCard({
   );
 }
 
-// ── Nuevo Pedido Modal ────────────────────────────────────────────
-interface Cliente {
-  id: number; nombre: string; email: string; telefono: string;
-  count_pedidos: number; total_gastado: number;
-}
-
-function NuevoPedidoModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState({
-    tipo: 'low_carb', cliente: '', email: '', telefono: '',
-    notas: '', g_pollo: 200, g_arroz: 150, g_brocoli: 100, cantidad: 1,
-  });
-  const [loading, setLoading] = useState(false);
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [showSug, setShowSug] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/clientes').then(r => r.json()).then(setClientes).catch(() => {});
-  }, []);
-
-  const plan = TIPOS_PLAN.find(t => t.value === form.tipo);
-  const precioUnitario = plan?.precio ?? 4990;
-  const total = precioUnitario * form.cantidad;
-
-  const q = form.cliente.trim().toLowerCase();
-  const sugerencias = q.length >= 1
-    ? clientes.filter(c =>
-        c.nombre.toLowerCase().includes(q) ||
-        (c.email ?? '').toLowerCase().includes(q)
-      ).slice(0, 6)
-    : [];
-
-  function pickCliente(c: Cliente) {
-    setForm(f => ({ ...f, cliente: c.nombre, email: c.email ?? '', telefono: c.telefono ?? '' }));
-    setShowSug(false);
-  }
-
-  async function submit() {
-    setLoading(true);
-    await fetch('/api/pedidos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form,
-        items: [{
-          tipo: form.tipo,
-          nombre: plan?.label ?? form.tipo,
-          cantidad: form.cantidad,
-          precio: precioUnitario,
-          g_pollo: form.g_pollo, g_arroz: form.g_arroz, g_brocoli: form.g_brocoli,
-        }],
-      }),
-    });
-    // Guardar cliente en historial (sin monto hasta que se acepte el pago)
-    if (form.cliente.trim()) {
-      fetch('/api/clientes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre: form.cliente, email: form.email, telefono: form.telefono }),
-      }).catch(() => {});
-    }
-    onCreated(); onClose();
-    setLoading(false);
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/90" onClick={onClose}>
-      <div className="w-full max-w-lg animate-slide-up bg-black max-h-[90vh] overflow-y-auto"
-           style={{ borderTop: '1px solid #1a1a1a' }}
-           onClick={e => e.stopPropagation()}>
-
-        <div className="sticky top-0 bg-black flex items-center justify-between px-5 pt-5 pb-4 divider z-10">
-          <div className="flex items-center gap-3">
-            <span className="preps-logo">PREPS</span>
-            <span className="eyebrow">Nuevo Pedido Manual</span>
-          </div>
-          <button onClick={onClose} className="text-[#444] hover:text-white text-2xl leading-none">×</button>
-        </div>
-
-        <div className="px-5 py-5 pb-28 space-y-4">
-          <div>
-            <p className="label mb-2">Plan</p>
-            <div className="grid grid-cols-3 gap-0" style={{ border: '1px solid #1a1a1a' }}>
-              {TIPOS_PLAN.map((t, i) => (
-                <button key={t.value} onClick={() => setForm(f => ({
-                  ...f, tipo: t.value, g_pollo: t.g_pollo, g_arroz: t.g_arroz, g_brocoli: t.g_brocoli
-                }))}
-                  className="py-2.5 font-bebas text-base tracking-wider transition-all"
-                  style={{
-                    background: form.tipo === t.value ? '#FFD600' : 'transparent',
-                    color:      form.tipo === t.value ? '#000'    : '#777',
-                    borderLeft: i % 3 !== 0 ? '1px solid #1a1a1a' : 'none',
-                    borderTop:  i >= 3     ? '1px solid #1a1a1a' : 'none',
-                  }}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {[['g_pollo','POLLO'],['g_arroz','ARROZ'],['g_brocoli','BRÓCOLI']].map(([k, l]) => (
-              <div key={k}>
-                <p className="label mb-1.5">{l} (g)</p>
-                <input type="number" className="input font-bebas text-lg text-center"
-                  value={(form as Record<string, unknown>)[k] as number}
-                  onChange={e => setForm(f => ({ ...f, [k]: Number(e.target.value) }))}
-                  min={0} step={50} />
-              </div>
-            ))}
-          </div>
-
-          <div className="relative">
-            <p className="label mb-1.5">Cliente</p>
-            <input className="input" placeholder="Nombre" value={form.cliente}
-              onChange={e => { setForm(f => ({ ...f, cliente: e.target.value })); setShowSug(true); }}
-              onFocus={() => setShowSug(true)}
-              onBlur={() => setTimeout(() => setShowSug(false), 180)} />
-            {showSug && sugerencias.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-black z-20 max-h-56 overflow-y-auto"
-                   style={{ border: '1px solid #1a1a1a' }}>
-                {sugerencias.map(c => (
-                  <button key={c.id} type="button" onMouseDown={() => pickCliente(c)}
-                    className="w-full text-left px-3 py-2 hover:bg-[#0f0f0f] transition-colors"
-                    style={{ borderTop: '1px solid #0f0f0f' }}>
-                    <p className="font-barlow text-xs text-white font-700 uppercase tracking-wider">{c.nombre}</p>
-                    <p className="font-barlow text-[10px] text-[#555] tracking-wider">
-                      {c.email || '—'} · {c.count_pedidos} pedido{c.count_pedidos !== 1 ? 's' : ''} · {formatCLP(c.total_gastado)}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <p className="label mb-1.5">Email (opcional)</p>
-              <input className="input" placeholder="cliente@mail.com" value={form.email}
-                onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-            </div>
-            <div>
-              <p className="label mb-1.5">Teléfono</p>
-              <input className="input" placeholder="+569..." value={form.telefono}
-                onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <p className="label mb-1.5">Cantidad</p>
-              <input type="number" className="input font-bebas text-lg" value={form.cantidad} min={1}
-                onChange={e => setForm(f => ({ ...f, cantidad: Number(e.target.value) }))} />
-            </div>
-            <div>
-              <p className="label mb-1.5">Notas</p>
-              <input className="input" placeholder="Observaciones..." value={form.notas}
-                onChange={e => setForm(f => ({ ...f, notas: e.target.value }))} />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 pb-2">
-            <div>
-              <p className="label">Total</p>
-              <p className="font-bebas text-3xl text-[#FFD600]">{formatCLP(total)}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={onClose} className="btn-dark">CANCELAR</button>
-              <button onClick={submit} disabled={loading} className="btn-brand px-6 disabled:opacity-30">
-                {loading ? '...' : 'CREAR'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main ──────────────────────────────────────────────────────────
 type FilterTab = 'PENDIENTE_PAGO' | 'ACEPTADO' | 'TODOS';
 
@@ -647,7 +470,7 @@ export default function ComandasPage() {
         )}
       </div>
 
-      {modal && <NuevoPedidoModal onClose={() => setModal(false)} onCreated={fetch_} />}
+      {modal && <VentaModal onClose={() => setModal(false)} onSaved={fetch_} title="Nueva Venta" />}
       <Navbar pendientes={pendientes} />
     </>
   );
