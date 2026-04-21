@@ -93,8 +93,8 @@ function ClienteFields({
 }
 
 // ── Menu tab ──────────────────────────────────────────────────
-function MenuVentaTab({ conIva, cliente, email, telefono, onDone, onError }: {
-  conIva: boolean;
+function MenuVentaTab({ conIva, dscto, cliente, email, telefono, onDone, onError }: {
+  conIva: boolean; dscto: boolean;
   cliente: string; email: string; telefono: string;
   onDone: () => void; onError: (msg: string) => void;
 }) {
@@ -116,9 +116,10 @@ function MenuVentaTab({ conIva, cliente, email, telefono, onDone, onError }: {
   const lb = parseInt(labsBrocoli) || 0;
   const labsPrecio = Math.round(3 + lp * 22.47 + la * 2.08 + lb * 5.69);
 
-  let total = 0;
-  for (const it of MENU_ITEMS) total += (cant[it.tipo] ?? 0) * it.precio;
-  if (labsOn) total += labsPrecio * labsCant;
+  let totalBruto = 0;
+  for (const it of MENU_ITEMS) totalBruto += (cant[it.tipo] ?? 0) * it.precio;
+  if (labsOn) totalBruto += labsPrecio * labsCant;
+  const total = dscto ? Math.round(totalBruto * 0.9) : totalBruto;
 
   async function save() {
     const items: Array<{
@@ -146,7 +147,7 @@ function MenuVentaTab({ conIva, cliente, email, telefono, onDone, onError }: {
       : '';
     const res = await fetch('/api/ventas/menu', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, con_iva: conIva, descripcion }),
+      body: JSON.stringify({ items, con_iva: conIva, descripcion, descuento: dscto ? 0.1 : 0 }),
     });
     // Guardar cliente en historial
     if (cliente.trim()) {
@@ -245,10 +246,18 @@ function MenuVentaTab({ conIva, cliente, email, telefono, onDone, onError }: {
         )}
       </div>
 
-      {total > 0 && (
-        <div className="p-3 flex items-center justify-between animate-fade-in" style={{ border: '1px solid #FFD600' }}>
-          <span className="label">TOTAL</span>
-          <span className="font-bebas text-2xl text-[#FFD600]">{formatCLP(total)}</span>
+      {totalBruto > 0 && (
+        <div className="p-3 animate-fade-in" style={{ border: '1px solid #FFD600' }}>
+          {dscto && (
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-barlow text-[10px] uppercase tracking-wider text-[#555]">Bruto</span>
+              <span className="font-bebas text-sm text-[#666] line-through">{formatCLP(totalBruto)}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <span className="label">TOTAL{dscto ? ' (−10%)' : ''}</span>
+            <span className="font-bebas text-2xl text-[#FFD600]">{formatCLP(total)}</span>
+          </div>
         </div>
       )}
 
@@ -269,6 +278,7 @@ export default function VentaModal({
   const [mode, setMode] = useState<'menu' | 'manual'>('menu');
   const [monto, setMonto] = useState('');
   const [conIva, setConIva] = useState(true);
+  const [dscto, setDscto] = useState(false);
   const [descripcion, setDescripcion] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -284,7 +294,8 @@ export default function VentaModal({
   const [email, setEmail]       = useState('');
   const [telefono, setTelefono] = useState('');
 
-  const m = parseInt(monto.replace(/\D/g, '')) || 0;
+  const mBruto = parseInt(monto.replace(/\D/g, '')) || 0;
+  const m = dscto ? Math.round(mBruto * 0.9) : mBruto;
   const gP = parseInt(mPollo)   || 0;
   const gA = parseInt(mArroz)   || 0;
   const gB = parseInt(mBrocoli) || 0;
@@ -297,7 +308,8 @@ export default function VentaModal({
   async function saveManual() {
     if (m <= 0) { setError('Ingresa un monto válido'); return; }
     setSaving(true);
-    const desc = descripcion || (cliente ? `${cliente}${email ? ' (' + email + ')' : ''}` : '');
+    const baseDesc = descripcion || (cliente ? `${cliente}${email ? ' (' + email + ')' : ''}` : '');
+    const desc = dscto ? `${baseDesc || 'Venta'} · 10% dscto` : baseDesc;
     const res = await fetch('/api/ventas', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -373,10 +385,29 @@ export default function VentaModal({
             setCliente={setCliente} setEmail={setEmail} setTelefono={setTelefono}
           />
 
+          {/* Descuento 10% */}
+          <button onClick={() => setDscto(d => !d)}
+            className="w-full flex items-center justify-between p-3 transition-all"
+            style={{
+              border: '1px solid ' + (dscto ? '#FFD600' : '#1a1a1a'),
+              background: dscto ? '#FFD600' : 'transparent',
+              color:      dscto ? '#000'    : '#fff',
+            }}>
+            <div className="text-left">
+              <p className="font-barlow font-800 text-[11px] tracking-[0.22em] uppercase">
+                10% DESCUENTO
+              </p>
+              <p className="font-barlow text-[10px] mt-0.5 opacity-70">
+                {dscto ? 'Aplicado al total' : 'Tocar para aplicar'}
+              </p>
+            </div>
+            <span className="font-bebas text-xl">{dscto ? 'ON' : 'OFF'}</span>
+          </button>
+
           {mode === 'menu' ? (
             <>
               <MenuVentaTab
-                conIva={conIva}
+                conIva={conIva} dscto={dscto}
                 cliente={cliente} email={email} telefono={telefono}
                 onDone={() => { onSaved(); onClose(); }}
                 onError={setError}
@@ -425,6 +456,12 @@ export default function VentaModal({
                     onChange={e => setDescripcion(e.target.value)} />
                 </div>
               </div>
+
+              {dscto && mBruto > 0 && (
+                <p className="font-barlow text-[10px] uppercase tracking-wider text-[#555] -mt-2">
+                  Bruto <span className="line-through">{formatCLP(mBruto)}</span> → <span className="text-[#FFD600]">{formatCLP(m)}</span> (−10%)
+                </p>
+              )}
 
               {m > 0 && (
                 <div className="grid grid-cols-4 gap-0 animate-fade-in" style={{ border: '1px solid #1a1a1a' }}>

@@ -32,8 +32,8 @@ interface ItemIn {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { items = [], con_iva = true, descripcion = '' } = body as {
-      items: ItemIn[]; con_iva?: boolean; descripcion?: string;
+    const { items = [], con_iva = true, descripcion = '', descuento = 0 } = body as {
+      items: ItemIn[]; con_iva?: boolean; descripcion?: string; descuento?: number;
     };
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -85,11 +85,17 @@ export async function POST(request: NextRequest) {
       desc.push(`${cantidad}× ${tipo}`);
     }
 
+    const factor = Math.max(0, 1 - (descuento ?? 0));
+    const montoFinal = Math.round(monto * factor);
+    const descFinal = descuento && descuento > 0
+      ? `${descripcion || desc.join(', ')} · ${Math.round(descuento * 100)}% dscto`
+      : (descripcion || desc.join(', '));
+
     const venta = await createVentaMenu({
-      monto: Math.round(monto),
+      monto: montoFinal,
       costo: Math.round(costo),
       con_iva,
-      descripcion: descripcion || desc.join(', '),
+      descripcion: descFinal,
       stockDelta: {
         pollo:   Math.round(stockDelta.pollo),
         arroz:   Math.round(stockDelta.arroz),
