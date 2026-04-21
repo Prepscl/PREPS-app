@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { formatCLP } from '@/lib/calculations';
+import { formatCLP, calcularCostoPlato } from '@/lib/calculations';
 
 // ── Types ─────────────────────────────────────────────────────
 interface Cliente {
@@ -268,11 +268,16 @@ export default function VentaModal({
 }) {
   const [mode, setMode] = useState<'menu' | 'manual'>('menu');
   const [monto, setMonto] = useState('');
-  const [costo, setCosto] = useState('0');
   const [conIva, setConIva] = useState(true);
   const [descripcion, setDescripcion] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Manual: insumos para descuento automático
+  const [mPollo, setMPollo]     = useState('0');
+  const [mArroz, setMArroz]     = useState('0');
+  const [mBrocoli, setMBrocoli] = useState('0');
+  const [mTapers, setMTapers]   = useState('1');
 
   // Cliente
   const [cliente, setCliente]   = useState('');
@@ -280,7 +285,11 @@ export default function VentaModal({
   const [telefono, setTelefono] = useState('');
 
   const m = parseInt(monto.replace(/\D/g, '')) || 0;
-  const c = parseInt(costo.replace(/\D/g, '')) || 0;
+  const gP = parseInt(mPollo)   || 0;
+  const gA = parseInt(mArroz)   || 0;
+  const gB = parseInt(mBrocoli) || 0;
+  const tap = parseInt(mTapers) || 0;
+  const c = Math.round(calcularCostoPlato(gP, gA, gB));
   const iva = conIva ? Math.round(m - m / 1.19) : 0;
   const neto = conIva ? Math.round(m / 1.19) : m;
   const gan = neto - c;
@@ -291,7 +300,11 @@ export default function VentaModal({
     const desc = descripcion || (cliente ? `${cliente}${email ? ' (' + email + ')' : ''}` : '');
     const res = await fetch('/api/ventas', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ monto: m, costo: c, con_iva: conIva, descripcion: desc }),
+      body: JSON.stringify({
+        monto: m, con_iva: conIva, descripcion: desc,
+        insumos: { g_pollo: gP, g_arroz: gA, g_brocoli: gB },
+        tapers: tap,
+      }),
     });
     if (cliente.trim()) {
       fetch('/api/clientes', {
@@ -379,11 +392,32 @@ export default function VentaModal({
                   value={monto} onChange={e => setMonto(e.target.value)} autoFocus />
               </div>
 
+              <div>
+                <p className="label mb-2">Insumos (gramos cocidos)</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <p className="label mb-1 text-[9px]">Pollo g</p>
+                    <input type="number" className="input py-2" value={mPollo}
+                      onChange={e => setMPollo(e.target.value)} min={0} step={50} />
+                  </div>
+                  <div>
+                    <p className="label mb-1 text-[9px]">Arroz g</p>
+                    <input type="number" className="input py-2" value={mArroz}
+                      onChange={e => setMArroz(e.target.value)} min={0} step={50} />
+                  </div>
+                  <div>
+                    <p className="label mb-1 text-[9px]">Brócoli g</p>
+                    <input type="number" className="input py-2" value={mBrocoli}
+                      onChange={e => setMBrocoli(e.target.value)} min={0} step={50} />
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="label mb-2">Costo insumos</p>
-                  <input type="number" className="input" placeholder="0"
-                    value={costo} onChange={e => setCosto(e.target.value)} />
+                  <p className="label mb-2">Tápers</p>
+                  <input type="number" className="input" value={mTapers}
+                    onChange={e => setMTapers(e.target.value)} min={0} />
                 </div>
                 <div>
                   <p className="label mb-2">Descripción</p>
@@ -393,16 +427,17 @@ export default function VentaModal({
               </div>
 
               {m > 0 && (
-                <div className="grid grid-cols-3 gap-0 animate-fade-in" style={{ border: '1px solid #1a1a1a' }}>
+                <div className="grid grid-cols-4 gap-0 animate-fade-in" style={{ border: '1px solid #1a1a1a' }}>
                   {[
                     { label: 'NETO',     value: formatCLP(neto) },
                     { label: 'IVA',      value: formatCLP(iva)  },
+                    { label: 'COSTO',    value: formatCLP(c)    },
                     { label: 'GANANCIA', value: formatCLP(gan)  },
                   ].map(({ label, value }, i) => (
                     <div key={label} className="p-3 text-center"
                          style={{ borderLeft: i > 0 ? '1px solid #1a1a1a' : 'none' }}>
                       <p className="label mb-1">{label}</p>
-                      <p className="font-bebas text-xl text-white">{value}</p>
+                      <p className="font-bebas text-base text-white">{value}</p>
                     </div>
                   ))}
                 </div>
