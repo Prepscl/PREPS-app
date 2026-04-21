@@ -13,6 +13,7 @@ export interface Pedido {
   tipo: string;
   cliente: string;
   telefono: string;
+  email?: string;
   items: string;
   total: number;
   costo: number;

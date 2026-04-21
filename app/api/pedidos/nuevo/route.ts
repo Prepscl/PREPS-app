@@ -170,6 +170,7 @@ export async function POST(request: NextRequest) {
       tipo:    tipoPrincipal,
       cliente,
       telefono,
+      email,
       items:   JSON.stringify(itemsNormalizados),
       total:   totalFinal,
       costo:   Math.round(costo),

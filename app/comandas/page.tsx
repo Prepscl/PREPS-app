@@ -21,7 +21,7 @@ interface ItemPedido {
 }
 
 interface Pedido {
-  id: number; numero: string; tipo: string; cliente: string; telefono: string;
+  id: number; numero: string; tipo: string; cliente: string; telefono: string; email?: string;
   items: string; total: number; costo: number; estado: Estado;
   origen: string; notas: string; created_at: string; accepted_at?: string;
 }
@@ -257,10 +257,11 @@ function OrderCard({
           </div>
 
           {/* Cliente */}
-          {(pedido.cliente || pedido.telefono) && (
-            <div className="flex gap-3 mb-2 text-[#666]">
+          {(pedido.cliente || pedido.telefono || pedido.email) && (
+            <div className="flex flex-wrap gap-3 mb-2 text-[#666]">
               {pedido.cliente  && <span className="flex items-center gap-1 font-barlow text-xs"><User  size={10} />{pedido.cliente}</span>}
               {pedido.telefono && <span className="flex items-center gap-1 font-barlow text-xs"><Phone size={10} />{pedido.telefono}</span>}
+              {pedido.email    && <span className="flex items-center gap-1 font-barlow text-xs lowercase">✉ {pedido.email}</span>}
             </div>
           )}
 
