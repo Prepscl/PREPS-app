@@ -50,7 +50,7 @@ export function OPTIONS() {
 //   Labs → gramos personalizados desde el cart
 const GRAMOS_DEFAULT: Record<string, { g_pollo: number; g_arroz: number; g_brocoli: number }> = {
   low_carb:  { g_pollo: 200, g_arroz: 150, g_brocoli: 100 },
-  high_carb: { g_pollo: 200, g_arroz: 300, g_brocoli: 200 },
+  high_carb: { g_pollo: 200, g_arroz: 300, g_brocoli: 100 },
   labs:      { g_pollo: 0,   g_arroz: 0,   g_brocoli: 0   },
 };
 

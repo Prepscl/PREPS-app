@@ -12,7 +12,7 @@ interface Cliente {
 // ── Menu items ────────────────────────────────────────────────
 const MENU_ITEMS: { tipo: string; label: string; precio: number; sub?: string }[] = [
   { tipo: 'low_carb',  label: 'LOW CARB',  precio: 4990,   sub: '200p · 150a · 100b' },
-  { tipo: 'high_carb', label: 'HIGH CARB', precio: 5690,   sub: '200p · 300a · 200b' },
+  { tipo: 'high_carb', label: 'HIGH CARB', precio: 5690,   sub: '200p · 300a · 100b' },
   { tipo: 'pack_5',    label: 'PACK X5',   precio: 24900,  sub: '5 platos' },
   { tipo: 'pack_15',   label: 'PACK X15',  precio: 72900,  sub: '15 platos' },
   { tipo: 'pack_28',   label: 'PACK X28',  precio: 129000, sub: '28 platos' },
