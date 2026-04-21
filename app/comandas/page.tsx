@@ -36,7 +36,7 @@ const ESTADO_LABEL: Record<Estado, string> = {
 const TIPOS_PLAN = [
   { value: 'low_carb',  label: 'LOW CARB',  precio: 4990,   g_pollo: 200, g_arroz: 150, g_brocoli: 100 },
   { value: 'high_carb', label: 'HIGH CARB', precio: 5690,   g_pollo: 200, g_arroz: 300, g_brocoli: 200 },
-  { value: 'pack_5',    label: 'PACK ×5',   precio: 24990,  g_pollo: 200, g_arroz: 150, g_brocoli: 100 },
+  { value: 'pack_5',    label: 'PACK ×5',   precio: 24900,  g_pollo: 200, g_arroz: 150, g_brocoli: 100 },
   { value: 'pack_15',   label: 'PACK ×15',  precio: 72900,  g_pollo: 200, g_arroz: 150, g_brocoli: 100 },
   { value: 'pack_28',   label: 'PACK ×28',  precio: 129000, g_pollo: 200, g_arroz: 150, g_brocoli: 100 },
   { value: 'labs',      label: 'LABS',      precio: 0,      g_pollo: 200, g_arroz: 150, g_brocoli: 100 },

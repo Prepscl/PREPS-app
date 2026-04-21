@@ -13,7 +13,7 @@ export const FACTORES_MERMA = {
 export const PRECIOS_VENTA: Record<string, number> = {
   low_carb: 4990,
   high_carb: 5690,
-  pack_5: 24990,
+  pack_5: 24900,
   pack_15: 72900,
   pack_28: 129000,
 };

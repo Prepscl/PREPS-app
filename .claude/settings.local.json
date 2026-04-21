@@ -40,7 +40,10 @@
       "Bash(git push *)",
       "Bash(node -e \"const fs=require\\('fs'\\);const p='app/dashboard/page.tsx';let s=fs.readFileSync\\(p,'utf8'\\);const start=s.indexOf\\('// ── Venta Modal'\\);const end=s.indexOf\\('// ── Reset Modal'\\);s=s.slice\\(0,start\\)+s.slice\\(end\\);fs.writeFileSync\\(p,s\\);console.log\\('OK', start, end\\);\")",
       "Bash(node -e \"const fs=require\\('fs'\\);const p='app/comandas/page.tsx';let s=fs.readFileSync\\(p,'utf8'\\);const start=s.indexOf\\('// ── Nuevo Pedido Modal'\\);const end=s.indexOf\\('// ── Main ──'\\);s=s.slice\\(0,start\\)+s.slice\\(end\\);fs.writeFileSync\\(p,s\\);console.log\\('OK',start,end\\);\")",
-      "Bash(git commit -m 'refactor: VentaModal compartido entre dashboard y comandas + cliente fields *)"
+      "Bash(git commit -m 'refactor: VentaModal compartido entre dashboard y comandas + cliente fields *)",
+      "Bash(curl -s -X POST https://preps-app.vercel.app/api/ventas -H \"Content-Type: application/json\" -d \"{\\\\\"monto\\\\\":8535,\\\\\"costo\\\\\":3571,\\\\\"con_iva\\\\\":true,\\\\\"descripcion\\\\\":\\\\\"Saldo inicial con boleta\\\\\"}\")",
+      "Bash(curl -s -X POST https://preps-app.vercel.app/api/ventas -H \"Content-Type: application/json\" -d \"{\\\\\"monto\\\\\":47344,\\\\\"costo\\\\\":17498,\\\\\"con_iva\\\\\":false,\\\\\"descripcion\\\\\":\\\\\"Saldo inicial sin boleta\\\\\"}\")",
+      "Bash(git commit *)"
     ]
   }
 }
