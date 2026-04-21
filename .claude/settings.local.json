@@ -43,7 +43,9 @@
       "Bash(git commit -m 'refactor: VentaModal compartido entre dashboard y comandas + cliente fields *)",
       "Bash(curl -s -X POST https://preps-app.vercel.app/api/ventas -H \"Content-Type: application/json\" -d \"{\\\\\"monto\\\\\":8535,\\\\\"costo\\\\\":3571,\\\\\"con_iva\\\\\":true,\\\\\"descripcion\\\\\":\\\\\"Saldo inicial con boleta\\\\\"}\")",
       "Bash(curl -s -X POST https://preps-app.vercel.app/api/ventas -H \"Content-Type: application/json\" -d \"{\\\\\"monto\\\\\":47344,\\\\\"costo\\\\\":17498,\\\\\"con_iva\\\\\":false,\\\\\"descripcion\\\\\":\\\\\"Saldo inicial sin boleta\\\\\"}\")",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(curl -s -i -X OPTIONS https://preps-app.vercel.app/api/pedidos/nuevo -H \"Origin: https://www.preps.cl\" -H \"Access-Control-Request-Method: POST\" -H \"Access-Control-Request-Headers: content-type\")",
+      "Bash(curl -s -i -X POST https://preps-app.vercel.app/api/pedidos/nuevo -H \"Origin: https://www.preps.cl\" -H \"Content-Type: application/json\" -d \"{\\\\\"secret\\\\\":\\\\\"MILA\\\\\",\\\\\"cliente\\\\\":\\\\\"Test CORS\\\\\",\\\\\"email\\\\\":\\\\\"test@test.cl\\\\\",\\\\\"origen\\\\\":\\\\\"WEB_CARRITO\\\\\",\\\\\"items\\\\\":[{\\\\\"tipo\\\\\":\\\\\"low_carb\\\\\",\\\\\"cantidad\\\\\":1}]}\")"
     ]
   }
 }

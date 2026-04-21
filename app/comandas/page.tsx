@@ -8,7 +8,7 @@ import { formatCLP, calcularCostoPlato } from '@/lib/calculations';
 import {
   CheckCircle2, XCircle, Clock, User, Phone, MessageSquare,
   Plus, RefreshCw, Globe, Smartphone, ChevronDown, ChevronUp,
-  Pencil, X,
+  Pencil, X, Trash2,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -234,10 +234,24 @@ function OrderCard({
               <p className="font-barlow text-[10px] text-[#333]">
                 Costo {formatCLP(pedido.costo)}
               </p>
-              {isPending && !editing && (
-                <button onClick={() => setEditing(true)} className="btn-ghost px-2 py-1">
-                  <Pencil size={9} className="mr-1" /> EDITAR
-                </button>
+              {!editing && (
+                <div className="flex gap-1">
+                  {isPending && (
+                    <button onClick={() => setEditing(true)} className="btn-ghost px-2 py-1">
+                      <Pencil size={9} className="mr-1" /> EDITAR
+                    </button>
+                  )}
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`¿Eliminar pedido ${pedido.numero}? No se puede deshacer.`)) return;
+                      await fetch(`/api/pedidos/${pedido.id}`, { method: 'DELETE' });
+                      onRefresh();
+                    }}
+                    className="btn-ghost px-2 py-1"
+                    title="Eliminar del historial">
+                    <Trash2 size={9} />
+                  </button>
+                </div>
               )}
             </div>
           </div>

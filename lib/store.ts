@@ -443,6 +443,15 @@ export async function updatePedido(
   return store.pedidos[idx];
 }
 
+export async function deletePedido(id: number): Promise<boolean> {
+  const store = await read();
+  const idx = store.pedidos.findIndex(p => p.id === id);
+  if (idx === -1) return false;
+  store.pedidos.splice(idx, 1);
+  await write(store);
+  return true;
+}
+
 // ── Transaction: aceptar pedido ──────────────────────────────────
 
 export async function aceptarPedido(

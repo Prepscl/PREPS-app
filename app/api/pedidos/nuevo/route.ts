@@ -76,7 +76,17 @@ export async function POST(request: NextRequest) {
       notas      = '',
       items      = [],
       origen     = 'WEB',
-    } = body;
+      total_web,
+      total: totalOverride,
+      subtotal,
+      descuento_pct,
+      costo_envio = 0,
+    } = body as {
+      cliente?: string; email?: string; telefono?: string; notas?: string;
+      items?: unknown[]; origen?: string;
+      total_web?: number; total?: number; subtotal?: number;
+      descuento_pct?: number; costo_envio?: number;
+    };
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Payload sin items' }, { status: 400, headers: CORS_HEADERS });
@@ -86,21 +96,23 @@ export async function POST(request: NextRequest) {
     let total = 0;
     let costo = 0;
 
-    const itemsNormalizados = items.map((item: {
+    type RawItem = {
       tipo?: string;
       nombre?: string;
       cantidad?: number;
       precio_unitario?: number;
       precio?: number;
+      variante?: string;
       g_pollo?: number;
       g_arroz?: number;
       g_brocoli?: number;
-    }) => {
+    };
+
+    const itemsNormalizados = (items as RawItem[]).map((item) => {
       const tipo     = item.tipo ?? 'low_carb';
       const cantidad = item.cantidad ?? 1;
       // Para packs: resolver defGrams por "variante" (low_carb/high_carb)
-      const variante = (item as { variante?: string }).variante;
-      const lookupKey = tipo.startsWith('pack_') ? (variante ?? 'low_carb') : tipo;
+      const lookupKey = tipo.startsWith('pack_') ? (item.variante ?? 'low_carb') : tipo;
       const defGrams = GRAMOS_DEFAULT[lookupKey] ?? GRAMOS_DEFAULT.low_carb;
 
       const g_pollo   = item.g_pollo   ?? defGrams.g_pollo;
@@ -136,6 +148,22 @@ export async function POST(request: NextRequest) {
     // Tipo principal del pedido (primer ítem)
     const tipoPrincipal = itemsNormalizados[0]?.tipo ?? 'low_carb';
 
+    // ── Total final: priorizar el total que viene de la web ─────
+    // (ya incluye descuento + envío tal como lo vio el cliente)
+    const totalFinal = Math.round(
+      totalOverride ??
+      total_web ??
+      (subtotal != null
+        ? (subtotal * (1 - (descuento_pct ?? 0))) + (costo_envio ?? 0)
+        : total + (costo_envio ?? 0))
+    );
+
+    const notasConEnvio = [
+      notas,
+      costo_envio ? `Envío: $${costo_envio}` : null,
+      descuento_pct ? `Dscto ${Math.round((descuento_pct) * 100)}%` : null,
+    ].filter(Boolean).join(' · ');
+
     // ── Crear pedido ───────────────────────────────────────────
     const pedido = await createPedido({
       numero:  numeroPedido(),
@@ -143,11 +171,11 @@ export async function POST(request: NextRequest) {
       cliente,
       telefono,
       items:   JSON.stringify(itemsNormalizados),
-      total:   Math.round(total),
+      total:   totalFinal,
       costo:   Math.round(costo),
       estado:  'PENDIENTE_PAGO',
       origen,
-      notas,
+      notas:   notasConEnvio || notas,
     });
 
     // ── Guardar / actualizar cliente ────────────────────────────
@@ -157,7 +185,7 @@ export async function POST(request: NextRequest) {
           nombre: cliente,
           email,
           telefono,
-          montoPedido: Math.round(total),
+          montoPedido: totalFinal,
         });
       } catch (e) {
         console.error('[webhook] upsertCliente error:', e);
@@ -166,6 +194,23 @@ export async function POST(request: NextRequest) {
 
     // ── Emitir SSE → notificación en tiempo real ───────────────
     emitNuevoPedido(pedido);
+
+    // ── Push notification via ntfy.sh ──────────────────────────
+    if (process.env.NTFY_TOPIC) {
+      try {
+        const body = `${cliente || 'Cliente'} · ${itemsNormalizados.reduce((s: number, i: { cantidad: number }) => s + (i.cantidad || 1), 0)} items · $${totalFinal.toLocaleString('es-CL')}`;
+        fetch(`https://ntfy.sh/${process.env.NTFY_TOPIC}`, {
+          method: 'POST',
+          headers: {
+            'Title': 'Nuevo pedido PREPS',
+            'Priority': 'high',
+            'Tags': 'bell,hamburger',
+            'Click': 'https://preps-app.vercel.app/comandas',
+          },
+          body,
+        }).catch(() => {});
+      } catch {}
+    }
 
     return NextResponse.json({ ok: true, pedido }, { status: 201, headers: CORS_HEADERS });
   } catch (error) {

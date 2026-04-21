@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getPedidoById, updatePedidoEstado, aceptarPedido,
-  calcularTaperesDesdeItems, updatePedido,
+  calcularTaperesDesdeItems, updatePedido, deletePedido,
 } from '@/lib/store';
 import { emitPedidoActualizado } from '@/lib/sse';
 import { calcularCostoPlato } from '@/lib/calculations';
@@ -14,6 +14,12 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const pedido = await getPedidoById(Number(params.id));
   if (!pedido) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json(pedido);
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const ok = await deletePedido(Number(params.id));
+  if (!ok) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  return NextResponse.json({ ok: true });
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
