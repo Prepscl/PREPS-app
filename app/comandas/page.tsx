@@ -352,16 +352,40 @@ function OrderCard({
 }
 
 // ── Nuevo Pedido Modal ────────────────────────────────────────────
+interface Cliente {
+  id: number; nombre: string; email: string; telefono: string;
+  count_pedidos: number; total_gastado: number;
+}
+
 function NuevoPedidoModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [form, setForm] = useState({
-    tipo: 'low_carb', cliente: '', telefono: '',
+    tipo: 'low_carb', cliente: '', email: '', telefono: '',
     notas: '', g_pollo: 200, g_arroz: 150, g_brocoli: 100, cantidad: 1,
   });
   const [loading, setLoading] = useState(false);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [showSug, setShowSug] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/clientes').then(r => r.json()).then(setClientes).catch(() => {});
+  }, []);
 
   const plan = TIPOS_PLAN.find(t => t.value === form.tipo);
   const precioUnitario = plan?.precio ?? 4990;
   const total = precioUnitario * form.cantidad;
+
+  const q = form.cliente.trim().toLowerCase();
+  const sugerencias = q.length >= 1
+    ? clientes.filter(c =>
+        c.nombre.toLowerCase().includes(q) ||
+        (c.email ?? '').toLowerCase().includes(q)
+      ).slice(0, 6)
+    : [];
+
+  function pickCliente(c: Cliente) {
+    setForm(f => ({ ...f, cliente: c.nombre, email: c.email ?? '', telefono: c.telefono ?? '' }));
+    setShowSug(false);
+  }
 
   async function submit() {
     setLoading(true);
@@ -379,6 +403,14 @@ function NuevoPedidoModal({ onClose, onCreated }: { onClose: () => void; onCreat
         }],
       }),
     });
+    // Guardar cliente en historial (sin monto hasta que se acepte el pago)
+    if (form.cliente.trim()) {
+      fetch('/api/clientes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: form.cliente, email: form.email, telefono: form.telefono }),
+      }).catch(() => {});
+    }
     onCreated(); onClose();
     setLoading(false);
   }
@@ -430,11 +462,34 @@ function NuevoPedidoModal({ onClose, onCreated }: { onClose: () => void; onCreat
             ))}
           </div>
 
+          <div className="relative">
+            <p className="label mb-1.5">Cliente</p>
+            <input className="input" placeholder="Nombre" value={form.cliente}
+              onChange={e => { setForm(f => ({ ...f, cliente: e.target.value })); setShowSug(true); }}
+              onFocus={() => setShowSug(true)}
+              onBlur={() => setTimeout(() => setShowSug(false), 180)} />
+            {showSug && sugerencias.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-1 bg-black z-20 max-h-56 overflow-y-auto"
+                   style={{ border: '1px solid #1a1a1a' }}>
+                {sugerencias.map(c => (
+                  <button key={c.id} type="button" onMouseDown={() => pickCliente(c)}
+                    className="w-full text-left px-3 py-2 hover:bg-[#0f0f0f] transition-colors"
+                    style={{ borderTop: '1px solid #0f0f0f' }}>
+                    <p className="font-barlow text-xs text-white font-700 uppercase tracking-wider">{c.nombre}</p>
+                    <p className="font-barlow text-[10px] text-[#555] tracking-wider">
+                      {c.email || '—'} · {c.count_pedidos} pedido{c.count_pedidos !== 1 ? 's' : ''} · {formatCLP(c.total_gastado)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <p className="label mb-1.5">Cliente</p>
-              <input className="input" placeholder="Nombre" value={form.cliente}
-                onChange={e => setForm(f => ({ ...f, cliente: e.target.value }))} />
+              <p className="label mb-1.5">Email (opcional)</p>
+              <input className="input" placeholder="cliente@mail.com" value={form.email}
+                onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
             </div>
             <div>
               <p className="label mb-1.5">Teléfono</p>

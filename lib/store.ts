@@ -55,12 +55,24 @@ export interface TaperesStock {
   updated_at: string;
 }
 
+export interface Cliente {
+  id: number;
+  nombre: string;
+  email: string;
+  telefono: string;
+  count_pedidos: number;
+  total_gastado: number;
+  last_pedido_at: string;
+  created_at: string;
+}
+
 interface Store {
   pedidos: Pedido[];
   ventas: Venta[];
   despensa: DespensaItem[];
   inversiones: Inversion[];
   taperes: TaperesStock;
+  clientes: Cliente[];
   _seq: number;
 }
 
@@ -105,6 +117,7 @@ function defaultStore(): Store {
     pedidos: [],
     ventas: [],
     inversiones: [],
+    clientes: [],
     taperes: { stock: 100, updated_at: ts },
     despensa: [
       { ingrediente: 'pollo', stock_g: 50000, updated_at: ts },
@@ -130,6 +143,7 @@ function normalizeStore(parsed: Partial<Store>): Store {
     }),
     despensa: parsed.despensa ?? def.despensa,
     inversiones: parsed.inversiones ?? [],
+    clientes: parsed.clientes ?? [],
     taperes: parsed.taperes ?? def.taperes,
     _seq: parsed._seq ?? 1,
   };
@@ -482,4 +496,72 @@ export async function aceptarPedido(
 
   await write(store);
   return { pedido: store.pedidos[idx], venta };
+}
+
+// ── Clientes ─────────────────────────────────────────────────────
+
+function clienteKey(c: { email?: string; nombre: string; telefono?: string }): string {
+  const email = (c.email ?? '').trim().toLowerCase();
+  if (email) return 'e:' + email;
+  const nombre = (c.nombre ?? '').trim().toLowerCase();
+  const tel = (c.telefono ?? '').replace(/\D/g, '');
+  return 'n:' + nombre + '|t:' + tel;
+}
+
+export async function getClientes(): Promise<Cliente[]> {
+  const store = await read();
+  return [...store.clientes].sort((a, b) => b.total_gastado - a.total_gastado);
+}
+
+export async function upsertCliente(data: {
+  nombre: string;
+  email?: string;
+  telefono?: string;
+  montoPedido?: number;
+}): Promise<Cliente | null> {
+  const nombre = (data.nombre ?? '').trim();
+  if (!nombre) return null;
+  const store = await read();
+  const key = clienteKey({ nombre, email: data.email, telefono: data.telefono });
+  const ts = nowStr();
+  const idx = store.clientes.findIndex(c =>
+    clienteKey({ nombre: c.nombre, email: c.email, telefono: c.telefono }) === key
+  );
+
+  if (idx === -1) {
+    const nuevo: Cliente = {
+      id: store._seq++,
+      nombre,
+      email: (data.email ?? '').trim(),
+      telefono: (data.telefono ?? '').trim(),
+      count_pedidos: data.montoPedido ? 1 : 0,
+      total_gastado: Math.round(data.montoPedido ?? 0),
+      last_pedido_at: data.montoPedido ? ts : '',
+      created_at: ts,
+    };
+    store.clientes.push(nuevo);
+    await write(store);
+    return nuevo;
+  }
+
+  const cur = store.clientes[idx];
+  // Actualizar campos vacíos con nuevos datos si vienen
+  if (!cur.email    && data.email)    cur.email    = data.email.trim();
+  if (!cur.telefono && data.telefono) cur.telefono = data.telefono.trim();
+  if (data.montoPedido && data.montoPedido > 0) {
+    cur.count_pedidos += 1;
+    cur.total_gastado += Math.round(data.montoPedido);
+    cur.last_pedido_at = ts;
+  }
+  await write(store);
+  return cur;
+}
+
+export async function deleteCliente(id: number): Promise<boolean> {
+  const store = await read();
+  const idx = store.clientes.findIndex(c => c.id === id);
+  if (idx === -1) return false;
+  store.clientes.splice(idx, 1);
+  await write(store);
+  return true;
 }

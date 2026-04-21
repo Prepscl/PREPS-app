@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createPedido } from '@/lib/store';
+import { createPedido, upsertCliente } from '@/lib/store';
 import { emitNuevoPedido } from '@/lib/sse';
 import { calcularCostoPlato, calcularPrecioLabs, PRECIOS_VENTA } from '@/lib/calculations';
 
@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
     // ── Parsear payload del carrito ────────────────────────────
     const {
       cliente    = '',
+      email      = '',
       telefono   = '',
       notas      = '',
       items      = [],
@@ -148,6 +149,20 @@ export async function POST(request: NextRequest) {
       origen,
       notas,
     });
+
+    // ── Guardar / actualizar cliente ────────────────────────────
+    if (cliente) {
+      try {
+        await upsertCliente({
+          nombre: cliente,
+          email,
+          telefono,
+          montoPedido: Math.round(total),
+        });
+      } catch (e) {
+        console.error('[webhook] upsertCliente error:', e);
+      }
+    }
 
     // ── Emitir SSE → notificación en tiempo real ───────────────
     emitNuevoPedido(pedido);
