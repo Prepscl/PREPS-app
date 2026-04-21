@@ -5,6 +5,16 @@ import { calcularCostoPlato, calcularPrecioLabs, PRECIOS_VENTA } from '@/lib/cal
 
 export const dynamic = 'force-dynamic';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-webhook-secret',
+};
+
+export function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
 /* ────────────────────────────────────────────────────────────────
    ENDPOINT WEBHOOK — recibe tickets desde preps.cl
 
@@ -55,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     const secret = body.secret ?? request.headers.get('x-webhook-secret') ?? '';
     if (process.env.WEBHOOK_SECRET && secret !== process.env.WEBHOOK_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS_HEADERS });
     }
 
     // ── Parsear payload del carrito ────────────────────────────
@@ -68,7 +78,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'Payload sin items' }, { status: 400 });
+      return NextResponse.json({ error: 'Payload sin items' }, { status: 400, headers: CORS_HEADERS });
     }
 
     // ── Calcular total y costo ─────────────────────────────────
@@ -142,9 +152,9 @@ export async function POST(request: NextRequest) {
     // ── Emitir SSE → notificación en tiempo real ───────────────
     emitNuevoPedido(pedido);
 
-    return NextResponse.json({ ok: true, pedido }, { status: 201 });
+    return NextResponse.json({ ok: true, pedido }, { status: 201, headers: CORS_HEADERS });
   } catch (error) {
     console.error('[webhook] Error:', error);
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Error interno' }, { status: 500, headers: CORS_HEADERS });
   }
 }
