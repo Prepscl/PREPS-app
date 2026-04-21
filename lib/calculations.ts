@@ -1,9 +1,17 @@
-export const COSTOS_CRUDOS = {
-  pollo: 9.27,
+// Precio por gramo COCIDO (así es como se calcula el costo del plato)
+export const COSTOS_COCIDOS = {
+  pollo: 9.06,
   arroz: 2.27,
   brocoli: 0.86,
 } as const;
 
+// Mantengo COSTOS_CRUDOS como alias por compatibilidad (mismos valores cocido)
+export const COSTOS_CRUDOS = COSTOS_COCIDOS;
+
+// Costo fijo de envase por plato
+export const COSTO_ENVASE = 350;
+
+// Merma SOLO para convertir g cocido → g crudo (stock y producción)
 export const FACTORES_MERMA = {
   pollo: 0.75,
   arroz: 2.5,
@@ -15,7 +23,7 @@ export const PRECIOS_VENTA: Record<string, number> = {
   high_carb: 5690,
   pack_5: 24900,
   pack_15: 72900,
-  pack_28: 129000,
+  pack_28: 129900,
 };
 
 export const LABELS_PRECIO: Record<string, string> = {
@@ -26,15 +34,16 @@ export const LABELS_PRECIO: Record<string, string> = {
   pack_28: 'Pack x28',
 };
 
+// Costo del plato: precio por g cocido × gramos cocidos + envase
 export function calcularCostoPlato(
   gPolloCocinado: number,
   gArrozCocinado: number,
   gBrocoliCocinado: number
 ): number {
-  const costoPollo = (gPolloCocinado / FACTORES_MERMA.pollo) * COSTOS_CRUDOS.pollo;
-  const costoArroz = (gArrozCocinado / FACTORES_MERMA.arroz) * COSTOS_CRUDOS.arroz;
-  const costoBrocoli = (gBrocoliCocinado / FACTORES_MERMA.brocoli) * COSTOS_CRUDOS.brocoli;
-  return costoPollo + costoArroz + costoBrocoli;
+  const costoPollo   = gPolloCocinado   * COSTOS_COCIDOS.pollo;
+  const costoArroz   = gArrozCocinado   * COSTOS_COCIDOS.arroz;
+  const costoBrocoli = gBrocoliCocinado * COSTOS_COCIDOS.brocoli;
+  return costoPollo + costoArroz + costoBrocoli + COSTO_ENVASE;
 }
 
 export function calcularPrecioLabs(
