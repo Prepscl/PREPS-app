@@ -222,16 +222,12 @@ function VentasSection({ onChange }: { onChange: () => void }) {
                     </p>
                   </div>
                   <span className="font-bebas text-sm text-[#666]">+{formatCLP(v.ganancia)}</span>
-                  {v.tipo_venta === 'MANUAL' && (
-                    <>
-                      <button onClick={() => startEdit(v)} className="p-1.5 text-[#555] hover:text-white">
-                        <Pencil size={11} />
-                      </button>
-                      <button onClick={() => del(v.id)} className="p-1.5 text-[#333] hover:text-white">
-                        <Trash2 size={11} />
-                      </button>
-                    </>
-                  )}
+                  <button onClick={() => startEdit(v)} className="p-1.5 text-[#555] hover:text-white" title="Editar">
+                    <Pencil size={11} />
+                  </button>
+                  <button onClick={() => del(v.id)} className="p-1.5 text-[#333] hover:text-white" title="Eliminar">
+                    <Trash2 size={11} />
+                  </button>
                 </div>
               )}
             </div>
