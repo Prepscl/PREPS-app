@@ -37,7 +37,7 @@ export default function LaboratorioPage() {
       <header style={{ background: '#080808', borderBottom: '1px solid #1e1e1e' }}
         className="sticky top-0 z-10 px-4 py-3">
         <div className="flex items-center gap-3">
-          <span className="preps-logo">PREPS</span>
+          <img src="/logo-preps.png" alt="PREPS" className="h-7 w-auto" />
           <div>
             <p className="font-barlow font-800 text-[11px] uppercase tracking-[0.15em] text-white">Laboratorio</p>
             <p className="font-barlow text-[10px] uppercase tracking-widest" style={{ color: '#2EE5C2' }}>

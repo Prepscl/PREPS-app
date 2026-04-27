@@ -338,7 +338,7 @@ export default function VentaModal({
       >
         <div className="sticky top-0 bg-black flex items-center justify-between px-5 pt-5 pb-4 divider z-10">
           <div className="flex items-center gap-3">
-            <span className="preps-logo">PREPS</span>
+            <img src="/logo-preps.png" alt="PREPS" className="h-7 w-auto" />
             <span className="eyebrow">{title}</span>
           </div>
           <button onClick={onClose} className="text-[#444] hover:text-white text-2xl leading-none">×</button>

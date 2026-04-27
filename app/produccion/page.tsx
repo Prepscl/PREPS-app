@@ -40,7 +40,7 @@ export default function ProduccionPage() {
       <header className="sticky top-0 z-10 bg-black px-4 py-4 flex items-center justify-between divider"
               style={{ borderTop: 'none' }}>
         <div className="flex items-center gap-3">
-          <span className="preps-logo">PREPS</span>
+          <img src="/logo-preps.png" alt="PREPS" className="h-7 w-auto" />
           <div>
             <p className="font-barlow font-800 text-[10px] uppercase tracking-[0.22em] text-white">Cocina</p>
             <p className="font-barlow text-[9px] uppercase tracking-wider text-[#555]">

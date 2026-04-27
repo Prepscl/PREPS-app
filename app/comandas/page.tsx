@@ -430,7 +430,7 @@ export default function ComandasPage() {
       <header className="sticky top-0 z-10 bg-black">
         <div className="px-4 py-4 flex items-center justify-between divider" style={{ borderTop: 'none' }}>
           <div className="flex items-center gap-3">
-            <span className="preps-logo">PREPS</span>
+            <img src="/logo-preps.png" alt="PREPS" className="h-7 w-auto" />
             <span className="font-barlow font-800 text-[10px] uppercase tracking-[0.22em] text-white">Comandas</span>
           </div>
           <div className="flex items-center gap-2">
