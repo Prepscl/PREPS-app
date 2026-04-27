@@ -66,12 +66,15 @@ html, body {
 /* ── Components ───────────────────────────────────────────────── */
 @layer components {
 
-  /* PREPS logo block — idéntico al sitio web */
+  /* PREPS wordmark — blanco sólido sobre negro, idéntico al logo real */
   .preps-logo {
-    @apply inline-block bg-white text-black font-bebas tracking-wider;
-    padding: 4px 10px 2px;
-    font-size: 1.25rem;
+    @apply inline-block text-white font-barlow;
+    font-weight: 900;
+    font-size: 1.5rem;
+    letter-spacing: -0.04em;
     line-height: 1;
+    padding: 0;
+    background: transparent;
   }
 
   /* Cards — flat, sin sombras, solo línea sutil */

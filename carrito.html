@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <title>SISTEMA DE CARGA - PREPS</title>
+    <link rel="icon" type="image/png" href="img/logo-preps.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root { --accent: #25D366; --dark: #000; --light: #f2f2f2; --neon: #39FF14; }
+        body { background-color: var(--light); color: var(--dark); font-family: 'Courier New', monospace; margin: 0; text-transform: uppercase; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+        .main-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 50px; background: #f2f2f2; border-bottom: 1px solid #000; position: sticky; top: 0; z-index: 1000; }
+        .logo-link img { height: 35px; width: auto; display: block; }
+        .main-nav { display: flex; align-items: center; gap: 30px; }
+        .main-nav a { text-decoration: none; color: #000; font-size: 13px; letter-spacing: 2px; }
+
+        .container { max-width: 800px; margin: 0 auto 100px; padding: 0 20px; }
+
+        .biomass-dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 25px 0; }
+        .macro-card {
+            background: linear-gradient(145deg, #111, #000);
+            color: #fff; padding: 20px 10px; text-align: center; border: 1px solid #333; border-radius: 4px;
+            box-shadow: inset 0 0 15px rgba(57, 255, 20, 0.05); position: relative; overflow: hidden;
+        }
+        .macro-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--neon); opacity: 0.3; }
+        .macro-label { font-size: 8px; opacity: 0.5; display: block; margin-bottom: 8px; letter-spacing: 2px; }
+        .macro-total-val { font-family: 'Inter'; font-weight: 900; font-size: 22px; color: var(--neon); text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
+
+        .progress-container { background: #ddd; height: 6px; width: 100%; margin: 10px 0 30px; border-radius: 10px; overflow: hidden; }
+        #progress-bar { height: 100%; width: 0%; transition: 1.5s ease; background: #ff4444; }
+
+        .cart-title { font-family: 'Inter'; font-weight: 900; font-size: 24px; letter-spacing: -1px; margin-top: 40px; text-align: center; }
+
+        .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: #fff; border: 1px solid #000; }
+        .cart-row td { padding: 18px; border-bottom: 1px solid #eee; font-size: 11px; }
+        .qty-controls { display: flex; align-items: center; gap: 12px; justify-content: center; background: #f9f9f9; padding: 5px; border-radius: 4px; }
+        .btn-qty { background: #000; color: #fff; border: none; width: 28px; height: 28px; cursor: pointer; font-weight: 900; transition: 0.2s; }
+        .btn-qty:active { transform: scale(0.9); }
+
+        .form-box { background:#fff; border:1px solid #000; padding:30px; margin-bottom:20px; text-align:left; }
+        .form-label { font-weight:900; font-size:10px; display:block; margin-bottom:20px; opacity:0.5; letter-spacing:1px; }
+        input, select { width:100%; padding:15px; margin-bottom:15px; border:1px solid #eee; font-family:inherit; font-size: 12px; text-transform: uppercase; box-sizing: border-box; }
+
+        .promo-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-apply { background: #000; color: #fff; border: none; padding: 0 25px; font-weight: 900; cursor: pointer; }
+        #discount-msg { color: var(--accent); font-weight: 900; font-size: 11px; margin-top: 5px; animation: blink 1s infinite; display: none; }
+
+        .delivery-alert { padding: 15px; background: #000; color: var(--neon); font-size: 11px; font-weight: 900; text-align: center; margin-bottom: 20px; border-radius: 4px; letter-spacing: 1px; }
+
+        .summary-box { background: #000; color: #fff; padding: 45px 20px; text-align: center; }
+        .total-amount { font-family: 'Inter'; font-weight: 900; font-size: 42px; color: #fff; margin: 15px 0; letter-spacing: -2px; }
+        .btn-checkout { background: var(--accent); color: #000; padding: 22px; font-family: 'Inter'; font-weight: 900; font-size: 16px; width: 100%; border: none; cursor: pointer; transition: 0.3s; }
+
+        #console-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: var(--neon); padding: 40px; box-sizing: border-box; }
+        #console-text { font-family: 'Courier New', monospace; font-size: 14px; text-align: left; max-width: 400px; margin-bottom: 30px; }
+
+        .btn-download-final { background: var(--neon); color: #000; padding: 22px 35px; border: none; font-weight: 900; font-family: 'Inter'; cursor: pointer; margin-bottom: 20px; font-size: 18px; transition: 0.3s; }
+        .btn-download-final:hover { transform: scale(1.05); }
+        .btn-wsp-final { background: transparent; color: var(--neon); padding: 18px 30px; border: 2px solid var(--neon); font-weight: 900; font-family: 'Inter'; cursor: pointer; display: none; text-decoration: none; font-size: 14px; }
+
+        #ticket-preview-container { display: none; width: 100%; max-width: 300px; margin-top: 20px; border: 2px solid var(--neon); }
+        #ticket-preview-img { width: 100%; height: auto; display: block; }
+
+        #ticket-export { position: absolute; left: -9999px; top: 0; width: 600px; background: #fff; color: #000; padding: 50px; box-sizing: border-box; border: 1px solid #000; }
+        .tk-header { border-bottom: 5px solid #000; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .tk-logo { height: 60px; }
+        .tk-factura-label { font-family: 'Inter'; font-weight: 900; font-size: 40px; }
+        .tk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; font-size: 12px; }
+        .tk-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+        .tk-table thead { background: #000; color: #fff; }
+        .tk-table td { padding: 15px; border: 1px solid #eee; }
+        .tk-total-section { margin-left: auto; width: 250px; }
+        .tk-total-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-weight: 900; }
+
+        @media (max-width: 600px) { .main-header { padding: 15px 20px; } .biomass-dashboard { grid-template-columns: 1fr; } .cart-row td { padding: 12px; font-size: 10px; } }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <a href="index.html" class="logo-link"><img src="img/logo-preps.png" alt="PREPS"></a>
+        <nav class="main-nav">
+            <a href="index.html">HOME</a>
+            <a href="catalogo.html">CATÁLOGO</a>
+            <a href="nosotros.html">NOSOTROS</a>
+        </nav>
+    </header>
+
+    <div class="container" id="main-container">
+        <div id="cart-content"></div>
+    </div>
+
+    <div id="console-modal">
+        <button id="btn-trigger-download" class="btn-download-final" onclick="executeDownload()">GENERAR TICKET DE CARGA</button>
+        <div id="console-text"></div>
+        <div id="ticket-preview-container">
+            <img id="ticket-preview-img" src="" alt="Ticket Preps">
+            <p style="font-size: 9px; color: var(--neon); margin-top: 10px; text-align: center;">MANTÉN PRESIONADA LA IMAGEN PARA GUARDARLA</p>
+        </div>
+        <button id="btn-goto-wsp" class="btn-wsp-final" onclick="sendToWhatsApp()">CONTINUAR A WHATSAPP</button>
+    </div>
+
+    <div id="ticket-export">
+        <div class="tk-header">
+            <img src="img/logo-preps.png" class="tk-logo">
+            <div class="tk-factura-label">ORDEN DE CARGA</div>
+        </div>
+        <div class="tk-grid">
+            <div><strong>PREPS LABS</strong><br>SANTIAGO, CHILE</div>
+            <div align="right"><strong>DESTINATARIO:</strong><br><span id="tk-name-val"></span><br><span id="tk-email-val"></span></div>
+        </div>
+        <div class="tk-grid">
+            <div><strong>TICKET ID:</strong> <span id="tk-id-val"></span></div>
+            <div align="right"><strong>FECHA:</strong> <span id="tk-date-val"></span></div>
+        </div>
+        <table class="tk-table">
+            <thead><tr><td>PRODUCTO</td><td align="center">QTY</td><td align="right">TOTAL</td></tr></thead>
+            <tbody id="tk-body-items"></tbody>
+        </table>
+        <div class="tk-total-section">
+            <div class="tk-total-row"><span>SUBTOTAL</span> <span id="tk-sub-val"></span></div>
+            <div class="tk-total-row" id="tk-dscto-row" style="display:none; color: green;"><span>DSCTO (10%)</span> <span id="tk-dscto-val"></span></div>
+            <div class="tk-total-row"><span>ENVÍO</span> <span id="tk-ship-val"></span></div>
+            <div class="tk-total-row" style="background: #000; color: #fff; padding: 15px 10px; margin-top: 10px;"><span>TOTAL</span> <span id="tk-total-val"></span></div>
+        </div>
+    </div>
+
+    <script>
+        const PREPS_API_URL        = "https://preps-app.vercel.app/api/pedidos/nuevo";
+        const PREPS_WEBHOOK_SECRET = "MILA";
+
+        let cart = JSON.parse(localStorage.getItem('preps_cart')) || [];
+        let discount = 0;
+        let shippingCost = 0;
+
+        const macroDB = {
+            "HIGH CARB": {k: 830, p: 73, c: 90},
+            "LOW CARB": {k: 632, p: 69, c: 49}
+        };
+
+        const shippingRates = {
+            "PROVIDENCIA": 2500,
+            "ÑUÑOA": 3000,
+            "LA REINA": 3500,
+            "LAS CONDES": 4000,
+            "VITACURA": 4000,
+            "LO BARNECHEA": 5000
+        };
+
+        function getRealMenuCount() {
+            return cart.reduce((total, item) => {
+                const name = item.name.toUpperCase();
+                if (name.includes("PACK 5") || name.includes("5HC") || name.includes("5LC")) return total + 5;
+                if (name.includes("PACK 15")) return total + 15;
+                if (name.includes("PACK 28")) return total + 28;
+                return total + 1;
+            }, 0);
+        }
+
+        function calculateShipping() {
+            const method = document.getElementById('delivery-method')?.value;
+            const comuna = document.getElementById('comuna')?.value;
+            const realMenuCount = getRealMenuCount();
+
+            if (method === 'RETIRO' || realMenuCount >= 5) {
+                shippingCost = 0;
+            } else if (method === 'DELIVERY') {
+                shippingCost = shippingRates[comuna] || 0;
+            }
+            updateTotalDisplay();
+        }
+
+        function updateTotalDisplay() {
+            const grouped = cart.reduce((acc, item) => { acc[item.name] = acc[item.name] || { count: 0, price: item.price }; acc[item.name].count++; return acc; }, {});
+            let totalMoney = 0;
+            for (const [name, data] of Object.entries(grouped)) { totalMoney += data.price * data.count; }
+
+            const totalFinal = Math.round((totalMoney * (1 - discount)) + shippingCost);
+            document.getElementById('display-total').innerText = `$${totalFinal.toLocaleString('es-CL')}`;
+        }
+
+        function renderCart(savedName = "", savedEmail = "") {
+            const nameToUse = (typeof savedName === 'string') ? savedName : "";
+            const emailToUse = (typeof savedEmail === 'string') ? savedEmail : "";
+
+            const container = document.getElementById('cart-content');
+            if (cart.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:100px 20px;"><h1 class="cart-title">INVENTARIO VACÍO</h1><br><a href="catalogo.html" style="background:#000; color:#fff; padding:20px 40px; text-decoration:none; font-weight:900;">INICIAR CARGA</a></div>`;
+                return;
+            }
+
+            const grouped = cart.reduce((acc, item) => { acc[item.name] = acc[item.name] || { count: 0, price: item.price }; acc[item.name].count++; return acc; }, {});
+            let totalMoney = 0, totalKcal = 0, totalProt = 0, totalCarb = 0;
+            let tableRows = "";
+
+            for (const [name, data] of Object.entries(grouped)) {
+                totalMoney += data.price * data.count;
+                if (name.includes("MACROS:")) {
+                    const matchProt = name.match(/(\d+)P/);
+                    const matchCarb = name.match(/\|(\d+)C/);
+                    const matchKcal = name.match(/(\d+)KCAL/);
+                    totalProt += (matchProt ? parseInt(matchProt[1]) : 0) * data.count;
+                    totalCarb += (matchCarb ? parseInt(matchCarb[1]) : 0) * data.count;
+                    totalKcal += (matchKcal ? parseInt(matchKcal[1]) : 0) * data.count;
+                }
+                else if (name.includes("PACKS PERFORMANCE")) {
+                    const matchHC = name.match(/(\d+)HC/);
+                    const matchLC = name.match(/(\d+)LC/);
+                    const numHC = matchHC ? parseInt(matchHC[1]) : 0;
+                    const numLC = matchLC ? parseInt(matchLC[1]) : 0;
+                    totalKcal += ((numHC * macroDB["HIGH CARB"].k) + (numLC * macroDB["LOW CARB"].k)) * data.count;
+                    totalProt += ((numHC * macroDB["HIGH CARB"].p) + (numLC * macroDB["LOW CARB"].p)) * data.count;
+                    totalCarb += ((numHC * macroDB["HIGH CARB"].c) + (numLC * macroDB["LOW CARB"].c)) * data.count;
+                }
+                else {
+                    let key = Object.keys(macroDB).find(k => name.toUpperCase().includes(k));
+                    if(key) {
+                        totalKcal += macroDB[key].k * data.count;
+                        totalProt += macroDB[key].p * data.count;
+                        totalCarb += macroDB[key].c * data.count;
+                    }
+                }
+                tableRows += `<tr class="cart-row"><td><span style="font-weight:900;">${name}</span></td><td width="120"><div class="qty-controls"><button class="btn-qty" onclick="changeQty('${name}', -1)">-</button><span style="font-weight:900;">${data.count}</span><button class="btn-qty" onclick="changeQty('${name}', 1)">+</button></div></td><td style="text-align:right; font-weight:900;">$${(data.price * data.count).toLocaleString('es-CL')}</td></tr>`;
+            }
+
+            const realCount = getRealMenuCount();
+            let alertBox = realCount >= 5
+                ? `<div class="delivery-alert">¡PROTOCOLO DE ENVÍO GRATIS ACTIVADO! 🚀</div>`
+                : `<div class="delivery-alert">AGREGA ${5 - realCount} MENÚS MÁS PARA ENVÍO GRATIS</div>`;
+
+            container.innerHTML = `
+                <div class="cart-title">ESTADO DE CARGA NUTRICIONAL</div>
+                <div class="progress-container"><div id="progress-bar"></div></div>
+                <div class="biomass-dashboard">
+                    <div class="macro-card"><span class="macro-label">TOTAL KCAL</span><span class="macro-total-val">${Math.round(totalKcal).toLocaleString()}</span></div>
+                    <div class="macro-card"><span class="macro-label">TOTAL PROT</span><span class="macro-total-val">${Math.round(totalProt)}G</span></div>
+                    <div class="macro-card"><span class="macro-label">TOTAL CARB</span><span class="macro-total-val">${Math.round(totalCarb)}G</span></div>
+                </div>
+                <table class="cart-table">${tableRows}</table>
+                ${alertBox}
+                <div class="form-box">
+                    <span class="form-label">[DATOS DE CONTACTO]</span>
+                    <input type="text" id="cust-name" placeholder="NOMBRE COMPLETO" value="${nameToUse}">
+                    <input type="email" id="cust-email" placeholder="CORREO ELECTRÓNICO" value="${emailToUse}">
+                    <select id="delivery-method" onchange="toggleDelivery()"><option value="RETIRO">RETIRO LOCAL</option><option value="DELIVERY">DELIVERY</option></select>
+                    <div id="delivery-options" style="display:none; margin-top:15px;">
+                        <select id="comuna" onchange="calculateShipping()">
+                            <option value="">SELECCIONAR COMUNA</option>
+                            <option value="PROVIDENCIA">PROVIDENCIA (+$2.500)</option>
+                            <option value="ÑUÑOA">ÑUÑOA (+$3.000)</option>
+                            <option value="LA REINA">LA REINA (+$3.500)</option>
+                            <option value="LAS CONDES">LAS CONDES (+$4.000)</option>
+                            <option value="VITACURA">VITACURA (+$4.000)</option>
+                            <option value="LO BARNECHEA">LO BARNECHEA (+$5.000)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-box">
+                    <span class="form-label">[VALIDACIÓN DE PROTOCOLO]</span>
+                    <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; text-transform: uppercase; font-size: 11px; line-height: 1.5;">
+                        <input type="checkbox" id="protocol-check" onchange="toggleCheckoutBtn()" style="width: 20px; height: 20px; margin: 0; accent-color: var(--neon); cursor: pointer;">
+                        <span>HE LEÍDO Y ACEPTO EL <a href="protocolo.html" target="_blank" style="color: #000; font-weight: 900;">PROTOCOLO DE OPERACIÓN</a>.</span>
+                    </label>
+                </div>
+                <div class="form-box">
+                    <span class="form-label">[CÓDIGO DE DESCUENTO]</span>
+                    <div class="promo-group">
+                        <input type="text" id="promo-code" placeholder="INGRESAR CÓDIGO" style="margin-bottom:0;">
+                        <button class="btn-apply" onclick="applyPromo()">OK</button>
+                    </div>
+                    <div id="discount-msg" style="${discount > 0 ? 'display:block' : 'none'}">>> CÓDIGO ACTIVADO: -10% DE DESCUENTO</div>
+                </div>
+                <div class="summary-box">
+                    <div class="total-amount" id="display-total">$${Math.round(totalMoney * (1-discount)).toLocaleString('es-CL')}</div>
+                    <button class="btn-checkout" id="final-checkout-btn" onclick="startProcess()" disabled style="background: #ccc; cursor: not-allowed; opacity: 0.5;">ACEPTAR PROTOCOLO PARA CONTINUAR</button>
+                </div>
+            `;
+            setTimeout(() => { document.getElementById('progress-bar').style.width = Math.min((cart.length / 12) * 100, 100) + "%"; }, 100);
+            calculateShipping();
+        }
+
+        function toggleCheckoutBtn() {
+            const isChecked = document.getElementById('protocol-check').checked;
+            const btn = document.getElementById('final-checkout-btn');
+            if(isChecked) {
+                btn.disabled = false; btn.style.background = "var(--accent)"; btn.style.cursor = "pointer"; btn.style.opacity = "1"; btn.innerText = "GENERAR TICKET Y PAGAR";
+            } else {
+                btn.disabled = true; btn.style.background = "#ccc"; btn.style.cursor = "not-allowed"; btn.style.opacity = "0.5"; btn.innerText = "ACEPTAR PROTOCOLO PARA CONTINUAR";
+            }
+        }
+
+        function toggleDelivery() {
+            const isDelivery = document.getElementById('delivery-method').value === 'DELIVERY';
+            document.getElementById('delivery-options').style.display = isDelivery ? 'block' : 'none';
+            calculateShipping();
+        }
+
+        function changeQty(name, delta) { delta > 0 ? cart.push({...cart.find(i => i.name === name)}) : cart.splice(cart.findIndex(i => i.name === name), 1); localStorage.setItem('preps_cart', JSON.stringify(cart)); renderCart(document.getElementById('cust-name').value, document.getElementById('cust-email').value); }
+
+        function applyPromo() {
+            const code = document.getElementById('promo-code').value.toUpperCase();
+            if (code === 'MILA10' || code === 'BASSS10') {
+                discount = 0.10;
+                renderCart(document.getElementById('cust-name').value, document.getElementById('cust-email').value);
+            } else { alert("SISTEMA: CÓDIGO INVÁLIDO"); }
+        }
+
+        function startProcess() {
+            const name = document.getElementById('cust-name').value;
+            const email = document.getElementById('cust-email').value;
+            if(!name || !email) { alert("DATOS INCOMPLETOS"); return; }
+            document.getElementById('console-modal').style.display = 'flex';
+        }
+
+        function _prepsBuildItems(grouped) {
+            const items = [];
+            for (const [name, data] of Object.entries(grouped)) {
+                const qtyGroup = data.count;
+                const precio = data.price;
+                const upper = name.toUpperCase();
+
+                const mCant = upper.match(/CANT:\s*(\d+)/);
+                const cantMult = mCant ? parseInt(mCant[1]) : 1;
+
+                const rec = upper.match(/RECETA:\s*(\d+)P\|(\d+)A\|(\d+)B/);
+                if (rec) {
+                    items.push({
+                        tipo: 'labs',
+                        nombre: name,
+                        cantidad: qtyGroup * cantMult,
+                        precio_unitario: Math.round(precio / cantMult),
+                        g_pollo:  parseInt(rec[1]) || 0,
+                        g_arroz:  parseInt(rec[2]) || 0,
+                        g_brocoli:parseInt(rec[3]) || 0,
+                    });
+                    continue;
+                }
+                if (upper.includes('PACK')) {
+                    const mHC = upper.match(/(\d+)\s*HC/); const mLC = upper.match(/(\d+)\s*LC/);
+                    const nHC = mHC ? parseInt(mHC[1]) : 0; const nLC = mLC ? parseInt(mLC[1]) : 0;
+                    const total = nHC + nLC;
+                    if (total === 5 || total === 15 || total === 28) {
+                        items.push({ tipo: 'pack_' + total, nombre: name, cantidad: qtyGroup, precio_unitario: precio, variante: nHC >= nLC ? 'high_carb' : 'low_carb' });
+                        continue;
+                    }
+                    if (nHC > 0) items.push({ tipo: 'high_carb', nombre: name, cantidad: qtyGroup * nHC, precio_unitario: Math.round(precio / total) });
+                    if (nLC > 0) items.push({ tipo: 'low_carb',  nombre: name, cantidad: qtyGroup * nLC, precio_unitario: Math.round(precio / total) });
+                    continue;
+                }
+                if (upper.includes('HIGH CARB')) { items.push({ tipo: 'high_carb', nombre: name, cantidad: qtyGroup, precio_unitario: precio }); continue; }
+                if (upper.includes('LOW CARB'))  { items.push({ tipo: 'low_carb',  nombre: name, cantidad: qtyGroup, precio_unitario: precio }); continue; }
+                items.push({ tipo: 'low_carb', nombre: name, cantidad: qtyGroup, precio_unitario: precio });
+            }
+            return items;
+        }
+
+        function executeDownload() {
+            const name = document.getElementById('cust-name').value;
+            const email = document.getElementById('cust-email').value;
+            const text = document.getElementById('console-text');
+            text.innerHTML = "> INICIANDO PROTOCOLO PREPS...<br>> COMPILANDO ORDEN VISUAL...<br>";
+
+            const method = document.getElementById('delivery-method').value;
+            const comuna = document.getElementById('comuna')?.value || '';
+            const totalDisplay = document.getElementById('display-total').innerText;
+            const grouped = cart.reduce((acc, item) => { acc[item.name] = acc[item.name] || { count: 0, price: item.price }; acc[item.name].count++; return acc; }, {});
+
+            let subtotal = 0;
+            for (const [, d] of Object.entries(grouped)) subtotal += d.price * d.count;
+            const totalFinal = Math.round((subtotal * (1 - discount)) + shippingCost);
+
+            let orderDetails = "";
+            for (const [n, d] of Object.entries(grouped)) { orderDetails += `- ${d.count}x ${n}\n`; }
+
+            fetch("https://formspree.io/f/xjgpnkky", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    cliente: name,
+                    email: email,
+                    entrega: method,
+                    costo_envio: shippingCost,
+                    pedido: orderDetails,
+                    total_venta: totalDisplay
+                })
+            }).catch(err => console.log("Notificación manual enviada."));
+
+            try {
+                const prepsItems = _prepsBuildItems(grouped);
+                const notasArr = [
+                    `Entrega: ${method}${comuna ? ' - ' + comuna : ''}`,
+                    shippingCost > 0 ? `Envío $${shippingCost}` : 'Envío gratis',
+                ];
+                fetch(PREPS_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        secret: PREPS_WEBHOOK_SECRET,
+                        cliente: name,
+                        email: email,
+                        entrega: method,
+                        origen: "WEB_CARRITO",
+                        notas: notasArr.join(' · '),
+                        items: prepsItems,
+                        subtotal: Math.round(subtotal),
+                        descuento_pct: discount,
+                        costo_envio: Math.round(shippingCost),
+                        total_web: totalFinal,
+                        total: totalFinal,
+                    }),
+                }).catch(err => console.log("PREPS webhook:", err));
+            } catch (err) { console.log("PREPS webhook error:", err); }
+
+            generateTicket(name, email);
+        }
+
+        function generateTicket(name, email) {
+            const ticket = document.getElementById('ticket-export');
+            const body = document.getElementById('tk-body-items');
+            const subtotal = cart.reduce((s, i) => s + i.price * 1, 0);
+            document.getElementById('tk-name-val').innerText = name.toUpperCase();
+            document.getElementById('tk-email-val').innerText = email.toUpperCase();
+            document.getElementById('tk-id-val').innerText = "#PRP-" + Math.floor(Math.random()*9000+1000);
+            document.getElementById('tk-date-val').innerText = new Date().toLocaleDateString();
+            document.getElementById('tk-sub-val').innerText = "$" + subtotal.toLocaleString('es-CL');
+            document.getElementById('tk-ship-val').innerText = shippingCost === 0 ? "GRATIS" : "$" + shippingCost.toLocaleString('es-CL');
+            document.getElementById('tk-total-val').innerText = document.getElementById('display-total').innerText;
+            if(discount > 0) { document.getElementById('tk-dscto-row').style.display = 'flex'; document.getElementById('tk-dscto-val').innerText = "-$" + Math.round(subtotal * 0.1).toLocaleString('es-CL'); }
+            const grouped = cart.reduce((acc, item) => { acc[item.name] = acc[item.name] || { count: 0, price: item.price }; acc[item.name].count++; return acc; }, {});
+            body.innerHTML = "";
+            for (const [n, data] of Object.entries(grouped)) { body.innerHTML += `<tr><td>${n}</td><td align="center">${data.count}</td><td align="right">$${(data.price * data.count).toLocaleString('es-CL')}</td></tr>`; }
+
+            html2canvas(ticket, { scale: 2 }).then(canvas => {
+                const dataUrl = canvas.toDataURL("image/png");
+                document.getElementById('ticket-preview-img').src = dataUrl;
+                document.getElementById('ticket-preview-container').style.display = 'block';
+                const link = document.createElement('a');
+                link.download = `PREPS-TICKET-${name.split(' ')[0]}.png`;
+                link.href = dataUrl;
+                link.click();
+                const text = document.getElementById('console-text');
+                text.innerHTML += "> TICKET GENERADO CON ÉXITO.<br><br>> SI NO SE DESCARGÓ, GUARDA LA IMAGEN DE ABAJO.";
+                document.getElementById('btn-goto-wsp').style.display = 'block';
+                document.getElementById('btn-trigger-download').style.display = 'none';
+            });
+        }
+
+        function sendToWhatsApp() {
+            localStorage.removeItem('preps_cart');
+            let msg = `HOLA SOMOS PREPS, POR FAVOR MANDAR TICKET PREVIAMENTE DESCARGADO O GUARDADO PARA PODER TOMAR SU PEDIDO.`;
+            window.location.href = `https://wa.me/56941892028?text=${encodeURIComponent(msg)}`;
+        }
+
+        window.addEventListener('load', () => renderCart("", ""));
+    </script>
+</body>
+</html>
