@@ -183,7 +183,7 @@ function MenuVentaTab({ conIva, dscto, cliente, email, telefono, onDone, onError
                 <span className="font-bebas text-xl text-white w-6 text-center">{q}</span>
                 <button onClick={() => inc(it.tipo, +1)}
                         className="w-7 h-7 font-bebas text-lg"
-                        style={{ border: '1px solid #FFD600', color: '#FFD600' }}>+</button>
+                        style={{ border: '1px solid #2EE5C2', color: '#2EE5C2' }}>+</button>
               </div>
             </div>
             {isPack && q > 0 && (
@@ -192,7 +192,7 @@ function MenuVentaTab({ conIva, dscto, cliente, email, telefono, onDone, onError
                   <button key={k} onClick={() => setVariante(V => ({ ...V, [it.tipo]: k }))}
                     className="py-1.5 font-barlow font-800 text-[9px] tracking-[0.22em] uppercase transition-all"
                     style={{
-                      background: v === k ? '#FFD600' : 'transparent',
+                      background: v === k ? '#2EE5C2' : 'transparent',
                       color:      v === k ? '#000'    : '#555',
                       borderLeft: i === 1 ? '1px solid #1a1a1a' : 'none',
                     }}>
@@ -209,7 +209,7 @@ function MenuVentaTab({ conIva, dscto, cliente, email, telefono, onDone, onError
       <div className="p-3" style={{ border: '1px solid #1a1a1a' }}>
         <button onClick={() => setLabsOn(o => !o)} className="w-full flex items-center justify-between">
           <p className="font-barlow font-800 text-[11px] uppercase tracking-[0.22em] text-white">LABS (PERSONALIZADO)</p>
-          <span className="font-bebas text-sm text-[#FFD600]">{labsOn ? '−' : '+'}</span>
+          <span className="font-bebas text-sm text-[#2EE5C2]">{labsOn ? '−' : '+'}</span>
         </button>
         {labsOn && (
           <div className="mt-3 space-y-2">
@@ -239,7 +239,7 @@ function MenuVentaTab({ conIva, dscto, cliente, email, telefono, onDone, onError
                 <span className="font-bebas text-xl text-white w-6 text-center">{labsCant}</span>
                 <button onClick={() => setLabsCant(c => c + 1)}
                         className="w-7 h-7 font-bebas text-lg"
-                        style={{ border: '1px solid #FFD600', color: '#FFD600' }}>+</button>
+                        style={{ border: '1px solid #2EE5C2', color: '#2EE5C2' }}>+</button>
               </div>
             </div>
           </div>
@@ -247,7 +247,7 @@ function MenuVentaTab({ conIva, dscto, cliente, email, telefono, onDone, onError
       </div>
 
       {totalBruto > 0 && (
-        <div className="p-3 animate-fade-in" style={{ border: '1px solid #FFD600' }}>
+        <div className="p-3 animate-fade-in" style={{ border: '1px solid #2EE5C2' }}>
           {dscto && (
             <div className="flex items-center justify-between mb-1">
               <span className="font-barlow text-[10px] uppercase tracking-wider text-[#555]">Bruto</span>
@@ -256,7 +256,7 @@ function MenuVentaTab({ conIva, dscto, cliente, email, telefono, onDone, onError
           )}
           <div className="flex items-center justify-between">
             <span className="label">TOTAL{dscto ? ' (−10%)' : ''}</span>
-            <span className="font-bebas text-2xl text-[#FFD600]">{formatCLP(total)}</span>
+            <span className="font-bebas text-2xl text-[#2EE5C2]">{formatCLP(total)}</span>
           </div>
         </div>
       )}
@@ -369,7 +369,7 @@ export default function VentaModal({
               <button key={String(v)} onClick={() => setConIva(v)}
                 className="flex flex-col items-start p-3 transition-all"
                 style={{
-                  background: conIva === v ? '#FFD600' : 'transparent',
+                  background: conIva === v ? '#2EE5C2' : 'transparent',
                   color:      conIva === v ? '#000'    : '#fff',
                   borderLeft: i === 1 ? '1px solid #1a1a1a' : 'none',
                 }}>
@@ -389,8 +389,8 @@ export default function VentaModal({
           <button onClick={() => setDscto(d => !d)}
             className="w-full flex items-center justify-between p-3 transition-all"
             style={{
-              border: '1px solid ' + (dscto ? '#FFD600' : '#1a1a1a'),
-              background: dscto ? '#FFD600' : 'transparent',
+              border: '1px solid ' + (dscto ? '#2EE5C2' : '#1a1a1a'),
+              background: dscto ? '#2EE5C2' : 'transparent',
               color:      dscto ? '#000'    : '#fff',
             }}>
             <div className="text-left">
@@ -459,7 +459,7 @@ export default function VentaModal({
 
               {dscto && mBruto > 0 && (
                 <p className="font-barlow text-[10px] uppercase tracking-wider text-[#555] -mt-2">
-                  Bruto <span className="line-through">{formatCLP(mBruto)}</span> → <span className="text-[#FFD600]">{formatCLP(m)}</span> (−10%)
+                  Bruto <span className="line-through">{formatCLP(mBruto)}</span> → <span className="text-[#2EE5C2]">{formatCLP(m)}</span> (−10%)
                 </p>
               )}
 

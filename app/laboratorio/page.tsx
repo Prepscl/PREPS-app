@@ -10,7 +10,7 @@ const MAX_G = 800;
 
 const INGREDIENTES = [
   { key: 'pollo'  as const, label: 'POLLO',   emoji: '🍗', color: '#fb923c', bg: 'rgba(251,146,60,0.08)'  },
-  { key: 'arroz'  as const, label: 'ARROZ',   emoji: '🍚', color: '#FFD600', bg: 'rgba(255,214,0,0.08)'   },
+  { key: 'arroz'  as const, label: 'ARROZ',   emoji: '🍚', color: '#2EE5C2', bg: 'rgba(46,229,194,0.08)'   },
   { key: 'brocoli'as const, label: 'BRÓCOLI', emoji: '🥦', color: '#22c55e', bg: 'rgba(34,197,94,0.08)'   },
 ];
 
@@ -40,7 +40,7 @@ export default function LaboratorioPage() {
           <span className="preps-logo">PREPS</span>
           <div>
             <p className="font-barlow font-800 text-[11px] uppercase tracking-[0.15em] text-white">Laboratorio</p>
-            <p className="font-barlow text-[10px] uppercase tracking-widest" style={{ color: '#FFD600' }}>
+            <p className="font-barlow text-[10px] uppercase tracking-widest" style={{ color: '#2EE5C2' }}>
               LABS — PRECIOS CUSTOM
             </p>
           </div>
@@ -104,9 +104,9 @@ export default function LaboratorioPage() {
 
         {/* Price result — hero */}
         <div className={clsx('p-6 text-center', sobreMax && 'opacity-40')}
-          style={{ background: '#000', border: '2px solid #FFD600' }}>
+          style={{ background: '#000', border: '2px solid #2EE5C2' }}>
           <p className="label mb-2">PRECIO LABS</p>
-          <p className="font-bebas leading-none" style={{ fontSize: '4rem', color: '#FFD600' }}>
+          <p className="font-bebas leading-none" style={{ fontSize: '4rem', color: '#2EE5C2' }}>
             {formatCLP(precio)}
           </p>
           <p className="font-barlow text-[10px] text-[#444] mt-2 uppercase tracking-wider">
@@ -121,7 +121,7 @@ export default function LaboratorioPage() {
             {[
               { l: 'COSTO INSUMOS', v: formatCLP(costo),    c: '#888' },
               { l: 'GANANCIA BRUTA', v: formatCLP(ganancia), c: ganancia >= 0 ? '#22c55e' : '#ef4444' },
-              { l: 'MARGEN S/IVA',  v: `${margen.toFixed(1)}%`, c: margen >= 40 ? '#FFD600' : '#fb923c' },
+              { l: 'MARGEN S/IVA',  v: `${margen.toFixed(1)}%`, c: margen >= 40 ? '#2EE5C2' : '#fb923c' },
               { l: 'COSTO POR GRAMO', v: totalG > 0 ? `${formatCLP(costo / totalG)}/g` : '—', c: '#444' },
             ].map(({ l, v, c }) => (
               <div key={l} className="flex justify-between items-center py-1.5"
@@ -143,8 +143,8 @@ export default function LaboratorioPage() {
               return (
                 <div key={key} className="p-3 text-center"
                   style={{
-                    background: close ? 'rgba(255,214,0,0.06)' : '#161616',
-                    border: `1px solid ${close ? '#FFD600' : '#2a2a2a'}`,
+                    background: close ? 'rgba(46,229,194,0.06)' : '#161616',
+                    border: `1px solid ${close ? '#2EE5C2' : '#2a2a2a'}`,
                   }}>
                   <p className="font-barlow text-[10px] uppercase tracking-widest text-[#555] mb-0.5">
                     {LABELS_PRECIO[key]}

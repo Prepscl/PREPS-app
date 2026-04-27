@@ -70,7 +70,7 @@ function ResetModal({ onClose, onDone }: { onClose: () => void; onDone: () => vo
               <button key={v} onClick={() => setOpcion(v)}
                 className="w-full flex items-start gap-3 p-4 text-left transition-all"
                 style={{
-                  background: opcion === v ? '#FFD600' : 'transparent',
+                  background: opcion === v ? '#2EE5C2' : 'transparent',
                   color:      opcion === v ? '#000'    : '#fff',
                   borderTop:  i > 0 ? '1px solid #1a1a1a' : 'none',
                 }}>
@@ -188,7 +188,7 @@ function VentasSection({ onChange }: { onChange: () => void }) {
                       <button key={String(cv)} onClick={() => setForm(f => ({ ...f, con_iva: cv }))}
                         className="flex-1 py-1.5 font-barlow font-800 text-[9px] tracking-[0.2em] uppercase transition-all"
                         style={{
-                          background: form.con_iva === cv ? '#FFD600' : 'transparent',
+                          background: form.con_iva === cv ? '#2EE5C2' : 'transparent',
                           color:      form.con_iva === cv ? '#000'    : '#555',
                           borderLeft: idx === 1 ? '1px solid #1a1a1a' : 'none',
                         }}>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
         {/* ── Hero: Venta Bruta ──────────────────────────── */}
         <section>
           <p className="label mb-2">VENTA BRUTA</p>
-          <p className="font-bebas text-[72px] leading-[0.9] text-[#FFD600]">
+          <p className="font-bebas text-[72px] leading-[0.9] text-[#2EE5C2]">
             {data ? formatCLP(data.ventaBruta) : '——'}
           </p>
           <div className="flex items-center gap-3 mt-2">
@@ -374,12 +374,12 @@ export default function DashboardPage() {
             <div className="h-full transition-all duration-700"
               style={{
                 width: `${invPct}%`,
-                background: invPct >= 100 ? '#fff' : '#FFD600',
+                background: invPct >= 100 ? '#fff' : '#2EE5C2',
               }} />
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="font-bebas text-lg" style={{ color: invPct >= 100 ? '#fff' : '#FFD600' }}>
+            <span className="font-bebas text-lg" style={{ color: invPct >= 100 ? '#fff' : '#2EE5C2' }}>
               {invPct.toFixed(1)}% RECUPERADO
             </span>
             {(inv?.porRecuperar ?? 0) > 0
@@ -426,7 +426,7 @@ export default function DashboardPage() {
         {/* ── Pedidos pendientes alert ─────────────────────── */}
         {(data?.pedidosPendientes ?? 0) > 0 && (
           <a href="/comandas" className="flex items-center justify-between p-4 animate-fade-in"
-             style={{ background: '#FFD600', color: '#000' }}>
+             style={{ background: '#2EE5C2', color: '#000' }}>
             <div>
               <p className="font-bebas text-xl leading-tight">
                 {data!.pedidosPendientes} PEDIDO{data!.pedidosPendientes > 1 ? 'S' : ''} ESPERANDO PAGO

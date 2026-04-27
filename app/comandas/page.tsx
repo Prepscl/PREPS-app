@@ -104,7 +104,7 @@ function EditPanel({
             }}
               className="py-2.5 font-bebas text-sm tracking-wider transition-all"
               style={{
-                background: tipo === t.value ? '#FFD600' : 'transparent',
+                background: tipo === t.value ? '#2EE5C2' : 'transparent',
                 color:      tipo === t.value ? '#000'    : '#777',
                 borderLeft: i % 3 !== 0 ? '1px solid #1a1a1a' : 'none',
                 borderTop:  i >= 3     ? '1px solid #1a1a1a' : 'none',
@@ -206,7 +206,7 @@ function OrderCard({
     <div style={{ border: '1px solid #1a1a1a', background: isPending ? '#0a0a0a' : 'transparent' }}>
       <div className="flex">
         {/* Yellow bar if pending */}
-        <div style={{ width: 2, background: isPending ? '#FFD600' : 'transparent', flexShrink: 0 }} />
+        <div style={{ width: 2, background: isPending ? '#2EE5C2' : 'transparent', flexShrink: 0 }} />
 
         <div className="flex-1 p-4">
           {/* Header */}
@@ -319,7 +319,7 @@ function OrderCard({
                     <button key={String(v)} onClick={() => setConIva(v)}
                       className="flex-1 py-2 font-barlow font-800 text-[10px] tracking-[0.22em] uppercase transition-all"
                       style={{
-                        background: conIva === v ? '#FFD600' : 'transparent',
+                        background: conIva === v ? '#2EE5C2' : 'transparent',
                         color:      conIva === v ? '#000'    : '#555',
                         borderLeft: i === 1 ? '1px solid #1a1a1a' : 'none',
                       }}>
@@ -451,12 +451,12 @@ export default function ComandasPage() {
               style={{ color: filter === tab.key ? '#fff' : '#444' }}>
               {tab.label}
               {tab.key === 'PENDIENTE_PAGO' && pendientes > 0 && (
-                <span className="ml-1.5 font-bebas px-1.5 text-xs" style={{ background: '#FFD600', color: '#000' }}>
+                <span className="ml-1.5 font-bebas px-1.5 text-xs" style={{ background: '#2EE5C2', color: '#000' }}>
                   {pendientes}
                 </span>
               )}
               {filter === tab.key && (
-                <span className="absolute bottom-0 left-4 right-4 h-[2px]" style={{ background: '#FFD600' }} />
+                <span className="absolute bottom-0 left-4 right-4 h-[2px]" style={{ background: '#2EE5C2' }} />
               )}
             </button>
           ))}

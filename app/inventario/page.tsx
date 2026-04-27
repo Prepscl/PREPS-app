@@ -52,7 +52,7 @@ function TaperesSection() {
           <div className="flex items-center gap-1.5">
             <input type="number" className="input w-20 text-center font-bebas text-xl py-1.5" value={value}
               onChange={e => setValue(e.target.value)} autoFocus onKeyDown={e => e.key === 'Enter' && save()} />
-            <button onClick={save} disabled={saving} className="p-2 bg-[#FFD600]">
+            <button onClick={save} disabled={saving} className="p-2 bg-[#2EE5C2]">
               <Check size={13} className="text-black" />
             </button>
             <button onClick={() => setEditing(false)} className="btn-ghost p-2">
@@ -68,7 +68,7 @@ function TaperesSection() {
       </div>
 
       <div className="h-[2px] mb-1" style={{ background: '#1a1a1a' }}>
-        <div className="h-full transition-all" style={{ width: `${pct}%`, background: '#FFD600' }} />
+        <div className="h-full transition-all" style={{ width: `${pct}%`, background: '#2EE5C2' }} />
       </div>
       <p className="font-barlow text-[10px] text-[#333] uppercase tracking-wider">Referencia 200 unidades</p>
     </section>
@@ -131,7 +131,7 @@ function DespensaSection() {
                       step="0.1" autoFocus onKeyDown={e => e.key === 'Enter' && save(item.ingrediente)} />
                     <span className="font-barlow text-xs text-[#555]">kg</span>
                     <button onClick={() => save(item.ingrediente)} disabled={saving === item.ingrediente}
-                            className="p-1.5 bg-[#FFD600]">
+                            className="p-1.5 bg-[#2EE5C2]">
                       <Check size={12} className="text-black" />
                     </button>
                     <button onClick={() => setEditing(e => { const n = { ...e }; delete n[item.ingrediente]; return n; })}
@@ -142,7 +142,7 @@ function DespensaSection() {
                 )}
               </div>
               <div className="h-[2px] mb-1" style={{ background: '#1a1a1a' }}>
-                <div className="h-full transition-all" style={{ width: `${pct}%`, background: '#FFD600' }} />
+                <div className="h-full transition-all" style={{ width: `${pct}%`, background: '#2EE5C2' }} />
               </div>
               <p className="font-barlow text-[10px] text-[#333] tracking-wider">{item.stock_g.toLocaleString()} g</p>
             </div>
@@ -248,7 +248,7 @@ function InversionesSection() {
                         <button key={cat} onClick={() => setEditForm(f => ({ ...f, categoria: cat }))}
                           className="py-2 font-barlow font-800 text-[10px] tracking-[0.22em] uppercase transition-all"
                           style={{
-                            background: editForm.categoria === cat ? '#FFD600' : 'transparent',
+                            background: editForm.categoria === cat ? '#2EE5C2' : 'transparent',
                             color:      editForm.categoria === cat ? '#000'    : '#555',
                             borderLeft: j % 3 !== 0 ? '1px solid #1a1a1a' : 'none',
                             borderTop:  j >= 3     ? '1px solid #1a1a1a' : 'none',
@@ -305,7 +305,7 @@ function InversionesSection() {
                   <button key={cat} onClick={() => setForm(f => ({ ...f, categoria: cat }))}
                     className="py-2 font-barlow font-800 text-[10px] tracking-[0.22em] uppercase transition-all"
                     style={{
-                      background: form.categoria === cat ? '#FFD600' : 'transparent',
+                      background: form.categoria === cat ? '#2EE5C2' : 'transparent',
                       color:      form.categoria === cat ? '#000'    : '#555',
                       borderLeft: i % 3 !== 0 ? '1px solid #1a1a1a' : 'none',
                       borderTop:  i >= 3     ? '1px solid #1a1a1a' : 'none',

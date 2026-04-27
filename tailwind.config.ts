@@ -16,9 +16,9 @@ const config: Config = {
       },
       colors: {
         brand: {
-          DEFAULT: '#FFD600',
-          dim: 'rgba(255,214,0,0.12)',
-          hover: '#FFE033',
+          DEFAULT: '#2EE5C2',
+          dim: 'rgba(46,229,194,0.12)',
+          hover: '#5CF0D2',
         },
         surface: {
           DEFAULT: '#0f0f0f',

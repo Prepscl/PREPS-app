@@ -59,7 +59,7 @@ export default function ProduccionPage() {
         <div className="grid grid-cols-2 gap-0" style={{ border: '1px solid #1a1a1a' }}>
           <div className="p-5 text-center">
             <p className="label mb-2">Platos</p>
-            <p className="font-bebas text-[56px] leading-[0.9] text-[#FFD600]">
+            <p className="font-bebas text-[56px] leading-[0.9] text-[#2EE5C2]">
               {data?.totalPlatos ?? 0}
             </p>
             <p className="eyebrow mt-2">A COCINAR</p>
@@ -114,7 +114,7 @@ export default function ProduccionPage() {
                     </div>
 
                     <div className="flex items-baseline gap-2">
-                      <p className="font-bebas leading-none text-[72px] text-[#FFD600]">
+                      <p className="font-bebas leading-none text-[72px] text-[#2EE5C2]">
                         {ins.crudo_kg.toFixed(3)}
                       </p>
                       <div>

@@ -35,7 +35,7 @@ export default function Navbar({ pendientes = 0 }: { pendientes?: number }) {
               {/* Línea amarilla arriba en activo */}
               {active && (
                 <span className="absolute top-0 left-2 right-2 h-[2px]"
-                  style={{ background: '#FFD600' }} />
+                  style={{ background: '#2EE5C2' }} />
               )}
 
               <div className="relative">
@@ -43,7 +43,7 @@ export default function Navbar({ pendientes = 0 }: { pendientes?: number }) {
                 {href === '/comandas' && pendientes > 0 && (
                   <span
                     className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 text-black font-bebas text-[10px] rounded-full flex items-center justify-center px-1 animate-pulse-fast"
-                    style={{ background: '#FFD600', lineHeight: 1 }}
+                    style={{ background: '#2EE5C2', lineHeight: 1 }}
                   >
                     {pendientes > 9 ? '9+' : pendientes}
                   </span>
@@ -52,7 +52,7 @@ export default function Navbar({ pendientes = 0 }: { pendientes?: number }) {
 
               <span
                 className="font-barlow font-700 text-[8px] tracking-[0.14em]"
-                style={{ color: active ? '#FFD600' : '' }}
+                style={{ color: active ? '#2EE5C2' : '' }}
               >
                 {label}
               </span>

@@ -4,7 +4,7 @@
 
 /* ═════════════════════════════════════════════════════════════════
    PREPS — Minimalist Design System
-   Palette: solo negro, blanco, grises y amarillo #FFD600
+   Palette: solo negro, blanco, grises y turquesa #2EE5C2
    ═════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -20,8 +20,8 @@
   --muted:     #707070;
   --dim:       #404040;
   --faint:     #2a2a2a;
-  --brand:     #FFD600;
-  --brand-dim: rgba(255,214,0,0.08);
+  --brand:     #2EE5C2;
+  --brand-dim: rgba(46,229,194,0.08);
 }
 
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -104,7 +104,7 @@ html, body {
     @apply btn bg-brand text-black px-5 py-3 text-sm uppercase;
     font-weight: 800;
   }
-  .btn-brand:hover { background: #FFE033; }
+  .btn-brand:hover { background: #5CF0D2; }
 
   .btn-white {
     @apply btn bg-white text-black px-5 py-3 text-sm uppercase;
