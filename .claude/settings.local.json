@@ -53,7 +53,11 @@
       "Bash(findstr /C:\"PREPS_API_URL\" /C:\"total_web\" /C:\"_prepsBuildItems\")",
       "Bash(curl -s https://www.preps.cl/carrito.html -o /tmp/live_cart.html)",
       "Read(//tmp/**)",
-      "Bash(curl -s -I https://www.preps.cl/carrito.html)"
+      "Bash(curl -s -I https://www.preps.cl/carrito.html)",
+      "Bash(sort -k6,8)",
+      "Bash(cat C:\\\\\\\\Users\\\\\\\\lcace\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\C--Users-lcace-OneDrive-Desktop-PREPS\\\\\\\\1db283e7-d3a9-4459-af85-d6ac2b5d5476\\\\\\\\tasks\\\\\\\\b4z70915h.output)",
+      "Read(//c/Users/lcace/AppData/Local/Temp/claude/**)",
+      "Read(//c/Users/lcace/AppData/Local/Temp/**)"
     ]
   }
 }

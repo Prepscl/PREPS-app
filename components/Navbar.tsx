@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, ChefHat, Boxes } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, ChefHat, Boxes, Award } from 'lucide-react';
 import clsx from 'clsx';
 
 const LINKS = [
@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/comandas',   icon: ClipboardList,   label: 'COMANDAS' },
   { href: '/produccion', icon: ChefHat,         label: 'COCINA'   },
   { href: '/inventario', icon: Boxes,           label: 'STOCK'    },
+  { href: '/racha',      icon: Award,           label: 'RACHA'    },
 ];
 
 export default function Navbar({ pendientes = 0 }: { pendientes?: number }) {
