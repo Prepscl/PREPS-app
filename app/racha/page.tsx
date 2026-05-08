@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
-import { Plus, Minus, RefreshCw, Download, Send, Award } from 'lucide-react';
+import { Plus, Minus, RefreshCw, Download, Send, Award, Phone, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 const MSGS = [
@@ -17,27 +17,53 @@ const MSGS = [
   '8 de 8 — el siguiente PREPS es GRATIS',
 ];
 
+// Card export size: fixed for consistent HD output
+const CARD_W = 1080;
+const CARD_H = 1350; // 4:5 ratio (Instagram-friendly, perfect WhatsApp preview)
+const SCALE  = 1;    // multiplied by html2canvas scale=3 → final 3240x4050px
+
 export default function RachaPage() {
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [n, setN] = useState(0);
   const [generating, setGenerating] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [lastDataUrl, setLastDataUrl] = useState<string | null>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const slots = Array.from({ length: 8 }, (_, i) => i);
 
+  async function generateImage(): Promise<{ blob: Blob; dataUrl: string } | null> {
+    if (!exportRef.current) return null;
+    const canvas = await html2canvas(exportRef.current, {
+      backgroundColor: '#000000',
+      scale: 3,
+      useCORS: true,
+      width: CARD_W,
+      height: CARD_H,
+      windowWidth: CARD_W,
+      windowHeight: CARD_H,
+    });
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(b => b ? resolve(b) : reject(), 'image/png', 1.0);
+    });
+    return { blob, dataUrl };
+  }
+
+  function fileNameSafe() {
+    const base = (name || 'cliente').toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_-]/g, '');
+    return `RACHA-PREPS-${base}.png`;
+  }
+
   async function downloadCard() {
-    if (!cardRef.current) return;
     setGenerating(true);
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#000000',
-        scale: 2,
-        useCORS: true,
-      });
-      const dataUrl = canvas.toDataURL('image/png');
+      const result = await generateImage();
+      if (!result) return;
+      setLastDataUrl(result.dataUrl);
       const link = document.createElement('a');
-      link.download = `RACHA-PREPS-${(name || 'CLIENTE').toUpperCase().replace(/\s+/g, '_')}.png`;
-      link.href = dataUrl;
+      link.download = fileNameSafe();
+      link.href = result.dataUrl;
       link.click();
     } catch (e) {
       console.error(e);
@@ -47,40 +73,64 @@ export default function RachaPage() {
     }
   }
 
-  async function shareWhatsApp() {
-    if (!cardRef.current) return;
+  // Native share (sistema iOS/Android — abre selector con WhatsApp incluido)
+  async function shareNative() {
     setGenerating(true);
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#000000',
-        scale: 2,
-        useCORS: true,
-      });
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
-        const file = new File([blob], `racha-${name || 'cliente'}.png`, { type: 'image/png' });
-        // Try Web Share API (works on mobile)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: 'Racha PREPS',
-              text: `${name ? name.toUpperCase() + ' — ' : ''}Racha PREPS: ${n}/8`,
-            });
-          } catch {}
-        } else {
-          // Fallback: download
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.download = `RACHA-PREPS-${(name || 'CLIENTE').toUpperCase()}.png`;
-          link.href = url;
-          link.click();
-          URL.revokeObjectURL(url);
-        }
-        setGenerating(false);
-      }, 'image/png');
+      const result = await generateImage();
+      if (!result) return;
+      setLastDataUrl(result.dataUrl);
+      const file = new File([result.blob], fileNameSafe(), { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Racha PREPS',
+          text: `${name ? name.toUpperCase() + ' — ' : ''}Tu racha PREPS: ${n}/8`,
+        });
+      } else {
+        // Fallback desktop: descarga
+        const link = document.createElement('a');
+        link.download = fileNameSafe();
+        link.href = result.dataUrl;
+        link.click();
+      }
+    } catch (e) {
+      // user cancelled or share failed
+      console.log(e);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  // Send to specific phone via WhatsApp
+  // (WhatsApp no permite adjuntar archivo via URL: descargamos la imagen y abrimos el chat con texto)
+  async function sendToPhone() {
+    const cleaned = phone.replace(/[^\d]/g, '');
+    if (cleaned.length < 8) {
+      alert('Ingresá un número de teléfono válido (con código de país, ej: 569XXXXXXXX)');
+      return;
+    }
+    setGenerating(true);
+    try {
+      const result = await generateImage();
+      if (!result) return;
+      setLastDataUrl(result.dataUrl);
+
+      // 1) Descargar la imagen
+      const link = document.createElement('a');
+      link.download = fileNameSafe();
+      link.href = result.dataUrl;
+      link.click();
+
+      // 2) Pequeño delay y abrir WhatsApp
+      await new Promise(r => setTimeout(r, 500));
+      const msg = encodeURIComponent(
+        `Hola${name ? ' ' + name : ''}! 🍱\n\nAcá te dejo tu tarjeta de fidelidad PREPS — vas ${n}/8.\nAl completar 8, el siguiente es ¡GRATIS! 🎁\n\n(Adjuntá la imagen que se acaba de descargar)`
+      );
+      window.open(`https://wa.me/${cleaned}?text=${msg}`, '_blank');
     } catch (e) {
       console.error(e);
+    } finally {
       setGenerating(false);
     }
   }
@@ -101,122 +151,32 @@ export default function RachaPage() {
             </p>
           </div>
         </div>
-        <button onClick={() => { setN(0); setName(''); }} className="btn-ghost p-2" title="Nueva tarjeta">
+        <button onClick={() => { setN(0); setName(''); setPhone(''); setLastDataUrl(null); }}
+          className="btn-ghost p-2" title="Nueva tarjeta">
           <RefreshCw size={12} />
         </button>
       </header>
 
-      <main className="px-4 py-5 max-w-lg mx-auto space-y-5">
-        {/* ── Card Preview (lo que se exporta) ──────── */}
-        <div ref={cardRef} style={{
-          background: '#000',
-          border: '1px solid #1a1a1a',
-          padding: '26px 26px 20px',
-          fontFamily: 'var(--font-barlow), system-ui, sans-serif',
+      <main className="px-4 py-5 max-w-lg mx-auto space-y-5 pb-24">
+
+        {/* ── PREVIEW (visible, responsive) ─────────────── */}
+        <div className="card-solid overflow-hidden" style={{ aspectRatio: '4 / 5' }}>
+          <CardContent name={name} n={n} slots={slots} responsive />
+        </div>
+
+        {/* ── EXPORT TARGET (off-screen, fijo HD) ───────── */}
+        <div style={{
+          position: 'absolute', left: '-99999px', top: 0,
+          width: `${CARD_W}px`, height: `${CARD_H}px`, pointerEvents: 'none',
         }}>
-          {/* Header de la tarjeta */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-            <img src="/logo-preps.png" alt="PREPS" style={{ width: 80, height: 'auto', display: 'block' }} />
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: 200, fontSize: 8, letterSpacing: '0.35em', color: '#2EE5C2', textTransform: 'uppercase', marginBottom: 2 }}>
-                Nuevo sistema
-              </div>
-              <div style={{ fontFamily: 'var(--font-bebas), Impact, sans-serif', fontSize: 42, lineHeight: 0.9, letterSpacing: '0.04em' }}>
-                <span style={{ color: '#fff' }}>RACHA </span>
-                <span style={{ color: '#2EE5C2' }}>PREPS</span>
-              </div>
-              <div style={{ fontWeight: 200, fontSize: 8, letterSpacing: '0.3em', color: '#2a2a2a', textTransform: 'uppercase', marginTop: 8, marginBottom: 2 }}>
-                Cliente
-              </div>
-              <div style={{
-                fontFamily: 'var(--font-bebas), Impact, sans-serif',
-                fontSize: 20, color: '#fff', letterSpacing: '0.08em',
-                borderBottom: '1px solid #1a1a1a', paddingBottom: 1,
-                minWidth: 80, display: 'inline-block', textAlign: 'right',
-              }}>
-                {(name || 'NOMBRE').toUpperCase()}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ width: '100%', height: 1, background: '#141414', marginBottom: 16 }} />
-
-          {/* Slots */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-            {[0, 1].map(row => (
-              <div key={row} style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-                {slots.slice(row * 4, row * 4 + 4).map(i => {
-                  const filled = i < n;
-                  return (
-                    <div key={i} style={{
-                      aspectRatio: '1 / 1',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: filled ? '#000' : '#b8b8b8',
-                      border: filled ? '1px solid #1e1e1e' : 'none',
-                    }}>
-                      {filled ? (
-                        <img src="/logo-preps.png" alt="" style={{ width: '70%', height: 'auto', display: 'block' }} />
-                      ) : (
-                        <span style={{ fontFamily: 'var(--font-bebas), Impact, sans-serif', fontSize: 30, color: '#000', lineHeight: 1 }}>
-                          {i + 1}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-
-          {/* Gift box */}
-          <div style={{ width: '100%', border: '1px dashed #2EE5C2', padding: 12, textAlign: 'center', marginBottom: 14 }}>
-            <div style={{ fontWeight: 200, fontSize: 8, letterSpacing: '0.3em', color: '#444', textTransform: 'uppercase', marginBottom: 1 }}>
-              Al completar <span style={{ color: '#2EE5C2' }}>8</span> obtienes
-            </div>
-            <div style={{ fontFamily: 'var(--font-bebas), Impact, sans-serif', fontSize: 38, lineHeight: 1, letterSpacing: '0.06em' }}>
-              <span style={{ color: '#fff' }}>PREPS </span>
-              <span style={{ color: '#2EE5C2' }}>GRATIS</span>
-            </div>
-            <div style={{ fontWeight: 200, fontSize: 7, letterSpacing: '0.25em', color: '#2a2a2a', textTransform: 'uppercase', marginTop: 3 }}>
-              Diseñado para tu rendimiento
-            </div>
-          </div>
-
-          {/* Progress */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <div style={{ flex: 1, height: 1, background: '#141414', position: 'relative' }}>
-              <div style={{
-                position: 'absolute', top: 0, left: 0,
-                height: 1, background: '#2EE5C2',
-                width: `${Math.round((n / 8) * 100)}%`,
-                transition: 'width 0.4s',
-              }} />
-            </div>
-            <div style={{ fontFamily: 'var(--font-bebas), Impact, sans-serif', fontSize: 13, color: '#252525', letterSpacing: '0.08em', minWidth: 40, textAlign: 'right' }}>
-              {n} / 8
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 12, borderTop: '1px solid #141414' }}>
-            <div style={{ fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', color: '#2a2a2a', textTransform: 'uppercase', lineHeight: 2 }}>
-              Completa <span style={{ color: '#2EE5C2' }}>8 preps</span><br />
-              y el 9° es <span style={{ color: '#2EE5C2' }}>gratis</span>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: 'var(--font-bebas), Impact, sans-serif', fontSize: 14, color: '#fff', letterSpacing: '0.12em' }}>
-                @PREPSCL
-              </div>
-              <div style={{ fontWeight: 200, fontSize: 7, color: '#1a1a1a', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 2 }}>
-                preps.cl
-              </div>
-            </div>
+          <div ref={exportRef} style={{ width: `${CARD_W}px`, height: `${CARD_H}px` }}>
+            <CardContent name={name} n={n} slots={slots} />
           </div>
         </div>
 
-        {/* ── Panel de control ───────────────────────── */}
+        {/* ── Panel ──────────────────────────────────── */}
         <div className="card-solid p-4 space-y-3">
-          <p className="label">Panel de gestión</p>
+          <p className="label">Datos del cliente</p>
 
           <input
             type="text"
@@ -226,7 +186,16 @@ export default function RachaPage() {
             onChange={e => setName(e.target.value)}
           />
 
-          <div className="grid grid-cols-3 gap-2">
+          <input
+            type="tel"
+            className="input"
+            placeholder="WHATSAPP (ej: 569XXXXXXXX)"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            inputMode="numeric"
+          />
+
+          <div className="grid grid-cols-3 gap-2 pt-2">
             <button onClick={() => n > 0 && setN(n - 1)}
               className="btn-dark py-3 disabled:opacity-30"
               disabled={n === 0}>
@@ -242,11 +211,23 @@ export default function RachaPage() {
           <div className={`text-center font-barlow text-[10px] uppercase tracking-[0.18em] py-2 ${n === 8 ? 'text-brand' : 'text-[#555]'}`}>
             {MSGS[n]}
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <button onClick={shareWhatsApp} disabled={generating || !name}
-              className="btn-brand py-3 text-xs disabled:opacity-30">
-              <Send size={12} className="mr-1.5" /> ENVIAR
+        {/* ── ACCIONES ENVIO ────────────────────────────── */}
+        <div className="card-solid p-4 space-y-3">
+          <p className="label">Enviar tarjeta</p>
+
+          {/* Enviar a teléfono específico */}
+          <button onClick={sendToPhone} disabled={generating || !name || phone.replace(/\D/g,'').length < 8}
+            className="btn-brand w-full py-3 text-xs disabled:opacity-30">
+            <Phone size={12} className="mr-2" />
+            ENVIAR POR WHATSAPP A ESTE NÚMERO
+          </button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={shareNative} disabled={generating || !name}
+              className="btn-dark py-3 text-xs disabled:opacity-30">
+              <Send size={12} className="mr-1.5" /> COMPARTIR
             </button>
             <button onClick={downloadCard} disabled={generating || !name}
               className="btn-dark py-3 text-xs disabled:opacity-30">
@@ -254,19 +235,28 @@ export default function RachaPage() {
             </button>
           </div>
 
-          <p className="font-barlow text-[9px] text-[#444] text-center mt-2">
-            {generating ? 'GENERANDO IMAGEN...' : 'La imagen se genera con la tarjeta de arriba'}
+          <p className="font-barlow text-[10px] text-[#666] text-center leading-relaxed">
+            {generating
+              ? '⏳ GENERANDO IMAGEN HD...'
+              : 'La imagen se descarga en 1080×1350 (HD) — perfecta para WhatsApp'}
           </p>
+
+          {lastDataUrl && (
+            <div className="flex items-center justify-center gap-2 text-brand pt-1">
+              <Check size={12} />
+              <span className="font-barlow text-[10px] tracking-widest">IMAGEN GENERADA</span>
+            </div>
+          )}
         </div>
 
-        {/* ── Tip ─────────────────────────────────────── */}
+        {/* ── INFO ─────────────────────────────────────── */}
         <div className="card-solid p-4 flex items-start gap-3">
-          <Award size={16} className="text-brand mt-0.5" />
+          <Award size={16} className="text-brand mt-0.5 flex-shrink-0" />
           <div>
             <p className="font-barlow font-800 text-xs uppercase tracking-wider text-white">¿Cómo funciona?</p>
             <p className="font-barlow text-[11px] text-[#888] mt-1 leading-relaxed">
-              Cada vez que tu cliente compre un PREPS, presiona <span className="text-brand">+</span> y mándale la tarjeta actualizada por WhatsApp.
-              Al completar 8, el siguiente PREPS es gratis.
+              Cada vez que tu cliente compre, presioná <span className="text-brand">+</span> y enviale la tarjeta actualizada.
+              Al llegar a 8, el siguiente PREPS es <span className="text-brand">gratis</span>.
             </p>
           </div>
         </div>
@@ -274,5 +264,179 @@ export default function RachaPage() {
 
       <Navbar />
     </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Card content — usado tanto para preview como para export
+// `responsive: true` → escala con el contenedor (preview)
+// sin responsive → tamaño fijo en píxeles (export)
+// ─────────────────────────────────────────────────────────────
+function CardContent({
+  name, n, slots, responsive,
+}: { name: string; n: number; slots: number[]; responsive?: boolean }) {
+  // Para preview responsive usamos vw-like units, para export usamos px fijos
+  const px = (v: number) => responsive ? `${(v / CARD_W) * 100}cqw` : `${v}px`;
+
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      background: '#000', color: '#fff',
+      fontFamily: 'var(--font-barlow), system-ui, sans-serif',
+      padding: px(60),
+      containerType: responsive ? 'inline-size' : undefined,
+      display: 'flex', flexDirection: 'column',
+      boxSizing: 'border-box',
+      overflow: 'hidden',
+    }}>
+      {/* HEADER */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: px(40) }}>
+        <img src="/logo-preps.png" alt="PREPS" style={{
+          width: px(180), height: 'auto', display: 'block',
+        }} />
+        <div style={{ textAlign: 'right' }}>
+          <div style={{
+            fontWeight: 200, fontSize: px(18), letterSpacing: '0.35em',
+            color: '#2EE5C2', textTransform: 'uppercase', marginBottom: px(6),
+          }}>
+            Nuevo sistema
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-bebas), Impact, sans-serif',
+            fontSize: px(82), lineHeight: 0.9, letterSpacing: '0.04em',
+          }}>
+            <span style={{ color: '#fff' }}>RACHA </span>
+            <span style={{ color: '#2EE5C2' }}>PREPS</span>
+          </div>
+          <div style={{
+            fontWeight: 200, fontSize: px(16), letterSpacing: '0.3em',
+            color: '#555', textTransform: 'uppercase', marginTop: px(20), marginBottom: px(4),
+          }}>
+            Cliente
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-bebas), Impact, sans-serif',
+            fontSize: px(40), color: '#fff', letterSpacing: '0.08em',
+            borderBottom: '2px solid #1a1a1a', paddingBottom: px(2),
+            minWidth: px(220), display: 'inline-block', textAlign: 'right',
+            lineHeight: 1,
+          }}>
+            {(name || 'NOMBRE').toUpperCase()}
+          </div>
+        </div>
+      </div>
+
+      {/* RULE */}
+      <div style={{ width: '100%', height: 1, background: '#222', marginBottom: px(40) }} />
+
+      {/* SLOTS GRID */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: px(14), marginBottom: px(36) }}>
+        {[0, 1].map(row => (
+          <div key={row} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: px(14) }}>
+            {slots.slice(row * 4, row * 4 + 4).map(i => {
+              const filled = i < n;
+              return (
+                <div key={i} style={{
+                  aspectRatio: '1 / 1',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: filled ? '#000' : '#b8b8b8',
+                  border: filled ? '2px solid #2EE5C2' : 'none',
+                  position: 'relative',
+                }}>
+                  {filled ? (
+                    <img src="/logo-preps.png" alt="" style={{
+                      width: '70%', height: 'auto', display: 'block',
+                    }} />
+                  ) : (
+                    <span style={{
+                      fontFamily: 'var(--font-bebas), Impact, sans-serif',
+                      fontSize: px(64), color: '#000', lineHeight: 1, fontWeight: 400,
+                    }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* GIFT BOX */}
+      <div style={{
+        width: '100%', border: '2px dashed #2EE5C2',
+        padding: px(28), textAlign: 'center', marginBottom: px(28),
+      }}>
+        <div style={{
+          fontWeight: 200, fontSize: px(16), letterSpacing: '0.3em',
+          color: '#666', textTransform: 'uppercase', marginBottom: px(4),
+        }}>
+          Al completar <span style={{ color: '#2EE5C2', fontWeight: 700 }}>8</span> obtienes
+        </div>
+        <div style={{
+          fontFamily: 'var(--font-bebas), Impact, sans-serif',
+          fontSize: px(78), lineHeight: 1, letterSpacing: '0.06em',
+        }}>
+          <span style={{ color: '#fff' }}>PREPS </span>
+          <span style={{ color: '#2EE5C2' }}>GRATIS</span>
+        </div>
+        <div style={{
+          fontWeight: 200, fontSize: px(14), letterSpacing: '0.25em',
+          color: '#555', textTransform: 'uppercase', marginTop: px(8),
+        }}>
+          Diseñado para tu rendimiento
+        </div>
+      </div>
+
+      {/* PROGRESS */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: px(20), marginBottom: px(28) }}>
+        <div style={{ flex: 1, height: 2, background: '#222', position: 'relative' }}>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, height: 2,
+            background: '#2EE5C2',
+            width: `${Math.round((n / 8) * 100)}%`,
+            transition: 'width 0.4s',
+          }} />
+        </div>
+        <div style={{
+          fontFamily: 'var(--font-bebas), Impact, sans-serif',
+          fontSize: px(28), color: '#fff', letterSpacing: '0.08em',
+          minWidth: px(80), textAlign: 'right', lineHeight: 1,
+        }}>
+          {n} / 8
+        </div>
+      </div>
+
+      {/* SPACER que empuja el footer abajo */}
+      <div style={{ flex: 1 }} />
+
+      {/* FOOTER */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+        paddingTop: px(28), borderTop: '1px solid #222',
+      }}>
+        <div style={{
+          fontWeight: 200, fontSize: px(18), letterSpacing: '0.18em',
+          color: '#555', textTransform: 'uppercase', lineHeight: 1.8,
+        }}>
+          Completa <span style={{ color: '#2EE5C2', fontWeight: 700 }}>8 PREPS</span><br />
+          y el 9° es <span style={{ color: '#2EE5C2', fontWeight: 700 }}>GRATIS</span>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{
+            fontFamily: 'var(--font-bebas), Impact, sans-serif',
+            fontSize: px(28), color: '#fff', letterSpacing: '0.12em', lineHeight: 1,
+          }}>
+            @PREPSCL
+          </div>
+          <div style={{
+            fontWeight: 200, fontSize: px(13), color: '#444',
+            letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: px(6),
+          }}>
+            preps.cl
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
