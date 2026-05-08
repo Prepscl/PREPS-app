@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
-import { Plus, Minus, RefreshCw, Download, Send, Award, Phone, Check } from 'lucide-react';
+import { Plus, Minus, RefreshCw, Download, Send, Award, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 const MSGS = [
@@ -24,7 +24,6 @@ const SCALE  = 1;    // multiplied by html2canvas scale=3 → final 3240x4050px
 
 export default function RachaPage() {
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
   const [n, setN] = useState(0);
   const [generating, setGenerating] = useState(false);
   const [lastDataUrl, setLastDataUrl] = useState<string | null>(null);
@@ -102,39 +101,6 @@ export default function RachaPage() {
     }
   }
 
-  // Send to specific phone via WhatsApp
-  // (WhatsApp no permite adjuntar archivo via URL: descargamos la imagen y abrimos el chat con texto)
-  async function sendToPhone() {
-    const cleaned = phone.replace(/[^\d]/g, '');
-    if (cleaned.length < 8) {
-      alert('Ingresá un número de teléfono válido (con código de país, ej: 569XXXXXXXX)');
-      return;
-    }
-    setGenerating(true);
-    try {
-      const result = await generateImage();
-      if (!result) return;
-      setLastDataUrl(result.dataUrl);
-
-      // 1) Descargar la imagen
-      const link = document.createElement('a');
-      link.download = fileNameSafe();
-      link.href = result.dataUrl;
-      link.click();
-
-      // 2) Pequeño delay y abrir WhatsApp
-      await new Promise(r => setTimeout(r, 500));
-      const msg = encodeURIComponent(
-        `Hola${name ? ' ' + name : ''}! 🍱\n\nAcá te dejo tu tarjeta de fidelidad PREPS — vas ${n}/8.\nAl completar 8, el siguiente es ¡GRATIS! 🎁\n\n(Adjuntá la imagen que se acaba de descargar)`
-      );
-      window.open(`https://wa.me/${cleaned}?text=${msg}`, '_blank');
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setGenerating(false);
-    }
-  }
-
   return (
     <>
       {/* ── Header ───────────────────────────────────── */}
@@ -151,7 +117,7 @@ export default function RachaPage() {
             </p>
           </div>
         </div>
-        <button onClick={() => { setN(0); setName(''); setPhone(''); setLastDataUrl(null); }}
+        <button onClick={() => { setN(0); setName(''); setLastDataUrl(null); }}
           className="btn-ghost p-2" title="Nueva tarjeta">
           <RefreshCw size={12} />
         </button>
@@ -186,15 +152,6 @@ export default function RachaPage() {
             onChange={e => setName(e.target.value)}
           />
 
-          <input
-            type="tel"
-            className="input"
-            placeholder="WHATSAPP (ej: 569XXXXXXXX)"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-            inputMode="numeric"
-          />
-
           <div className="grid grid-cols-3 gap-2 pt-2">
             <button onClick={() => n > 0 && setN(n - 1)}
               className="btn-dark py-3 disabled:opacity-30"
@@ -217,28 +174,22 @@ export default function RachaPage() {
         <div className="card-solid p-4 space-y-3">
           <p className="label">Enviar tarjeta</p>
 
-          {/* Enviar a teléfono específico */}
-          <button onClick={sendToPhone} disabled={generating || !name || phone.replace(/\D/g,'').length < 8}
+          {/* Botón principal: abre el menú nativo iOS/Android (AirDrop, WhatsApp, Mail, Mensajes, etc.) */}
+          <button onClick={shareNative} disabled={generating || !name}
             className="btn-brand w-full py-3 text-xs disabled:opacity-30">
-            <Phone size={12} className="mr-2" />
-            ENVIAR POR WHATSAPP A ESTE NÚMERO
+            <Send size={12} className="mr-2" />
+            ENVIAR
           </button>
 
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={shareNative} disabled={generating || !name}
-              className="btn-dark py-3 text-xs disabled:opacity-30">
-              <Send size={12} className="mr-1.5" /> COMPARTIR
-            </button>
-            <button onClick={downloadCard} disabled={generating || !name}
-              className="btn-dark py-3 text-xs disabled:opacity-30">
-              <Download size={12} className="mr-1.5" /> DESCARGAR
-            </button>
-          </div>
+          <button onClick={downloadCard} disabled={generating || !name}
+            className="btn-dark w-full py-3 text-xs disabled:opacity-30">
+            <Download size={12} className="mr-1.5" /> DESCARGAR
+          </button>
 
           <p className="font-barlow text-[10px] text-[#666] text-center leading-relaxed">
             {generating
               ? '⏳ GENERANDO IMAGEN HD...'
-              : 'La imagen se descarga en 1080×1350 (HD) — perfecta para WhatsApp'}
+              : 'Al enviar se abre el menú del sistema: AirDrop, WhatsApp, Mensajes, Mail, etc.'}
           </p>
 
           {lastDataUrl && (
@@ -340,7 +291,7 @@ function CardContent({
                   aspectRatio: '1 / 1',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: filled ? '#000' : '#b8b8b8',
-                  border: filled ? '2px solid #2EE5C2' : 'none',
+                  border: 'none',
                   position: 'relative',
                 }}>
                   {filled ? (
