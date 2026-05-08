@@ -33,14 +33,24 @@ export default function RachaPage() {
 
   async function generateImage(): Promise<{ blob: Blob; dataUrl: string } | null> {
     if (!exportRef.current) return null;
+    // Esperar a que las fonts estén cargadas — sin esto html2canvas puede capturar antes
+    try {
+      const docFonts = (document as unknown as { fonts?: { ready?: Promise<unknown> } }).fonts;
+      if (docFonts?.ready) await docFonts.ready;
+    } catch {}
+    // Pequeño delay extra para asegurar que la imagen del logo cargó
+    await new Promise(r => setTimeout(r, 200));
     const canvas = await html2canvas(exportRef.current, {
       backgroundColor: '#000000',
       scale: 3,
       useCORS: true,
+      allowTaint: false,
+      logging: false,
       width: CARD_W,
       height: CARD_H,
       windowWidth: CARD_W,
       windowHeight: CARD_H,
+      imageTimeout: 15000,
     });
     const dataUrl = canvas.toDataURL('image/png', 1.0);
     const blob = await new Promise<Blob>((resolve, reject) => {
@@ -247,12 +257,6 @@ function CardContent({
         }} />
         <div style={{ textAlign: 'right' }}>
           <div style={{
-            fontWeight: 200, fontSize: px(18), letterSpacing: '0.35em',
-            color: '#2EE5C2', textTransform: 'uppercase', marginBottom: px(6),
-          }}>
-            Nuevo sistema
-          </div>
-          <div style={{
             fontFamily: 'var(--font-bebas), Impact, sans-serif',
             fontSize: px(82), lineHeight: 0.9, letterSpacing: '0.04em',
           }}>
@@ -300,8 +304,15 @@ function CardContent({
                     }} />
                   ) : (
                     <span style={{
-                      fontFamily: 'var(--font-bebas), Impact, sans-serif',
-                      fontSize: px(64), color: '#000', lineHeight: 1, fontWeight: 400,
+                      fontFamily: 'var(--font-bebas), Impact, "Arial Black", sans-serif',
+                      fontSize: px(72), color: '#000',
+                      lineHeight: 1, fontWeight: 400,
+                      letterSpacing: '0.04em',
+                      textAlign: 'center',
+                      width: '100%',
+                      display: 'block',
+                      // Bebas tiene ascenders altos, baja un poco para centrar visualmente
+                      transform: 'translateY(4%)',
                     }}>
                       {String(i + 1).padStart(2, '0')}
                     </span>
@@ -367,11 +378,11 @@ function CardContent({
         paddingTop: px(28), borderTop: '1px solid #222',
       }}>
         <div style={{
-          fontWeight: 200, fontSize: px(18), letterSpacing: '0.18em',
-          color: '#555', textTransform: 'uppercase', lineHeight: 1.8,
+          fontWeight: 600, fontSize: px(20), letterSpacing: '0.18em',
+          color: '#cccccc', textTransform: 'uppercase', lineHeight: 1.8,
         }}>
-          Completa <span style={{ color: '#2EE5C2', fontWeight: 700 }}>8 PREPS</span><br />
-          y el 9° es <span style={{ color: '#2EE5C2', fontWeight: 700 }}>GRATIS</span>
+          Completa <span style={{ color: '#2EE5C2', fontWeight: 800 }}>8 PREPS</span><br />
+          y el 9° es <span style={{ color: '#2EE5C2', fontWeight: 800 }}>GRATIS</span>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{
