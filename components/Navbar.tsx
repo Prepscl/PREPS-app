@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, ChefHat, Boxes, Award } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, ChefHat, Boxes, Award, BarChart3 } from 'lucide-react';
 import clsx from 'clsx';
 
 const LINKS = [
@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/comandas',   icon: ClipboardList,   label: 'COMANDAS' },
   { href: '/produccion', icon: ChefHat,         label: 'COCINA'   },
   { href: '/inventario', icon: Boxes,           label: 'STOCK'    },
+  { href: '/analytics',  icon: BarChart3,       label: 'ANÁLISIS' },
   { href: '/racha',      icon: Award,           label: 'RACHA'    },
 ];
 

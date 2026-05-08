@@ -57,7 +57,10 @@
       "Bash(sort -k6,8)",
       "Bash(cat C:\\\\\\\\Users\\\\\\\\lcace\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\C--Users-lcace-OneDrive-Desktop-PREPS\\\\\\\\1db283e7-d3a9-4459-af85-d6ac2b5d5476\\\\\\\\tasks\\\\\\\\b4z70915h.output)",
       "Read(//c/Users/lcace/AppData/Local/Temp/claude/**)",
-      "Read(//c/Users/lcace/AppData/Local/Temp/**)"
+      "Read(//c/Users/lcace/AppData/Local/Temp/**)",
+      "Bash(sed -i -e 's|.prp-bubble:hover { transform: scale\\(1.1\\) rotate\\(-5deg\\); }|.prp-bubble:hover { transform: scale\\(1.05\\); background: #000; color: #fff; }|' -e '/.prp-bubble .prp-pulse {/,/pointer-events: none; }/d' -e '/@keyframes prp-pulse {/,/100% { transform: scale\\(1.5\\); opacity: 0; } }/d' -e '/@keyframes prp-float {/,/50% { transform: translateY\\(-6px\\); } }/d' /tmp/PREPSCL/chatbot.js)",
+      "Read(//c/tmp/PREPSCL/**)",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" -X POST https://preps-app.vercel.app/api/pedidos/nuevo -H \"Content-Type: application/json\" -d '{\"secret\":\"MILA\",\"cliente\":\"PING TEST\",\"email\":\"ping@test.cl\",\"items\":[{\"tipo\":\"low_carb\",\"cantidad\":1,\"precio_unitario\":4990}],\"total_web\":4990,\"subtotal\":4990,\"costo_envio\":0,\"descuento_pct\":0}')"
     ]
   }
 }
