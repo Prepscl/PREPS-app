@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getVentas, getPedidos, getInversiones, getClientes, getDespensa, getTaperes } from '@/lib/store';
+import { getVentas, getPedidos, getInversiones, getDespensa, getTaperes } from '@/lib/store';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,8 +25,8 @@ function dayKey(d: Date): string {
 }
 
 export async function GET() {
-  const [ventas, pedidos, inversiones, clientes, despensa, taperes] = await Promise.all([
-    getVentas(), getPedidos(), getInversiones(), getClientes(), getDespensa(), getTaperes(),
+  const [ventas, pedidos, inversiones, despensa, taperes] = await Promise.all([
+    getVentas(), getPedidos(), getInversiones(), getDespensa(), getTaperes(),
   ]);
 
   // ── Totales globales ─────────────────────────────────
@@ -88,17 +88,33 @@ export async function GET() {
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 10);
 
-  // ── Top clientes ─────────────────────────────────────
-  const topClientes = clientes
-    .slice()
-    .sort((a, b) => b.total_gastado - a.total_gastado)
-    .slice(0, 10)
-    .map(c => ({
-      nombre: c.nombre,
-      pedidos: c.count_pedidos,
-      gastado: c.total_gastado,
-      promedio: c.count_pedidos > 0 ? Math.round(c.total_gastado / c.count_pedidos) : 0,
-    }));
+  // ── Top clientes (DERIVADO de pedidos aceptados, no del registro estático) ──
+  // Esto garantiza que solo aparezcan clientes que realmente compraron (no test data ni placeholders)
+  const clientesMap = new Map<string, { gastado: number; pedidos: number }>();
+  for (const p of pedidosAceptados) {
+    const nombre = (p.cliente || '').trim();
+    if (!nombre) continue; // descartar pedidos sin nombre real
+    if (nombre.toLowerCase() === 'cliente' || nombre.toLowerCase().includes('test')
+        || nombre.toLowerCase().includes('ping') || nombre.toLowerCase() === 'lucas'
+        || nombre.toLowerCase() === 'preps user') {
+      // descartar nombres genéricos / test
+      continue;
+    }
+    const key = nombre.toUpperCase();
+    const cur = clientesMap.get(key) ?? { gastado: 0, pedidos: 0 };
+    cur.gastado += p.total;
+    cur.pedidos += 1;
+    clientesMap.set(key, cur);
+  }
+  const topClientes = Array.from(clientesMap.entries())
+    .map(([nombre, d]) => ({
+      nombre,
+      pedidos: d.pedidos,
+      gastado: d.gastado,
+      promedio: d.pedidos > 0 ? Math.round(d.gastado / d.pedidos) : 0,
+    }))
+    .sort((a, b) => b.gastado - a.gastado)
+    .slice(0, 10);
 
   // ── Análisis temporal ────────────────────────────────
   const ventasFechadas = ventas
@@ -181,7 +197,7 @@ export async function GET() {
       margen,
       ventasCount: ventas.length,
       pedidosCount: pedidos.length,
-      clientesCount: clientes.length,
+      clientesCount: clientesMap.size,
       diasOperando,
     },
     promedios: {
